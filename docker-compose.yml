@@ -1,0 +1,30 @@
+version: '3'
+services:
+  node-app:
+    build: .
+    command: node index.js
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    # ports:
+    #   - "8080:8080"
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+    depends_on:
+      - node-app
+    ports:
+      - 8001:80
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+volumes:
+  mongodb_data:
