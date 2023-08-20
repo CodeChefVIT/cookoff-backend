@@ -1,6 +1,6 @@
-import {schema,model} from mongoose
+const {Schema,model} = require("mongoose");
 
-const submission_schema = schema({
+const submission_schema = new Schema({
     id : {type:Number},
     user : {type:Number,required:true},
     language : {type:String,required:true},
@@ -12,4 +12,4 @@ const submission_schema = schema({
 
 const submission_db = model("Submissions",submission_schema); 
 
-export default submission_db;
+module.exports = submission_db;

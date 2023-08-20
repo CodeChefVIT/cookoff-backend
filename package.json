@@ -4,7 +4,8 @@
   "description": "Backend for cook off portal",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "nodemon ./server.js"
   },
   "repository": {
     "type": "git",
