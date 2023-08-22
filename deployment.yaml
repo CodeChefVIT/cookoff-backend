@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cookooff-backend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cookooff-backend
+  template:
+    metadata:
+      labels:
+        app: cookooff-backend
+    spec:
+      containers:
+        - name: cookooff-backend
+          image: shivam2002/cookoff:latest # Replace 'tag' with the specific image tag you want to use
+          ports:
+            - containerPort: 8080 # Assuming your Node.js app listens on port 3000
+          env:
+            - name: NODE_ENV
+              value: production # Set your desired environment variables here
+          # Add more environment variables or volume mounts if needed
