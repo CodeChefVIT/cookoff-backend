@@ -7,13 +7,9 @@ require("dotenv").config();
 const app = express();
 
 // Read MongoDB connection details from environment variables
-const dbHost = process.env.DB_HOST;
-const dbPort = process.env.DB_PORT;
-const dbName = process.env.DB_NAME;
+const mongoURI = process.env.DB_URI;
 
-// Construct the MongoDB URI
-const mongoURI = `mongodb://${dbHost}:${dbPort}/${dbName}`;
-
+console.log(mongoURI);
 // Connecting to mongoDB
 mongoose
   .connect(mongoURI, {
@@ -31,7 +27,6 @@ app.use(morgan("tiny"));
 app.get("/ping", (req, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
-
 
 // Starting Server
 app.listen(8080, () => {
