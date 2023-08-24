@@ -1,30 +1,51 @@
-name: Build and Deploy to GCE
+name: Publish Docker Image to Docker Hub
 
 on:
   pull_request:
     types:
-      - closed
+      - closed # Change this to the branch you want to trigger on
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up SSH keys
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Deploy to GCE
+      - name: "Create env file"
         run: |
-          # Replace this with your deployment commands
-          ssh -o StrictHostKeyChecking=no -i $SSH_AUTH_SOCK shivamsharma2002@34.131.8.203 'bash -s' << 'ENDSSH'
-            cd repo/cookoff-backend
-            sudo docker compose down
-            git pull origin main
-            sudo docker compose up --build -d --scale node-app=2
-            # Other deployment commands
-          ENDSSH
+          echo "${{ secrets.ENV_FILE }}" > .env
+          cat .env
+
+      - name: Build and push Docker image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker buildx create --use
+          docker buildx build --push -t $DOCKER_USERNAME/cookoff:latest .
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig with short-lived credentials
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 cookoff-cluster
+
+      - name: Deploy to DigitalOcean Kubernetes
+        run: kubectl apply -f deployment.yaml
+
+      - name: Rollout DigitalOcean Kubernetes
+        run: kubectl rollout restart deployment cookooff-backend-deployment
+
+      - name: Pod Status
+        run: kubectl get pods
+
+      - name: Verify deployment
+        run: kubectl rollout status deployment/cookooff-backend-deployment
