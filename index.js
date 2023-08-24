@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const os = require("os");
+const { default: createTestCases } = require("./testCasesController");
 require("dotenv").config();
 
 const app = express();
@@ -24,9 +25,11 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 // Setting up routes
-app.get("/ping", (req, res) => {
+app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
+
+app.post("/admin/testcases/create", createTestCases);
 
 // Starting Server
 app.listen(8080, () => {
