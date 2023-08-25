@@ -33,7 +33,7 @@ app.get("/ping", (_, res) => {
 
 
 app.use("/api/testcases/", TestCaseRouter)
-app.use(authRoute);
+app.use('/auth/',authRoute);
 
 
 // Starting Server

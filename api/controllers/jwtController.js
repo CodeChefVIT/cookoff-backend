@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const accessTokenSecret = 'abcd';
-const refreshTokenSecret = 'defg';
+const accessTokenSecret = process.env.ACCESS_KEY_SECRET;
+const refreshTokenSecret = process.env.REFRESH_KEY_SECRET;
 
 const jwtController = {
     signAccessToken: (regNo) => {
