@@ -1,14 +1,14 @@
 const mongoose=require('mongoose')
-const ques= require("./ques")
+const ques= require("../models/ques")
 const express=require("express");
 const bodyParser=require("body-parser");
-const testCases=require("./TestCase");
-
+//const TestCases=require("./TestCase");
+//const getTestCases=require("./testCases");
 const app=express();
-const port=3000;
+const port=5000;
 mongoose.connect("mongodb://127.0.0.1/QuestionsTesting");
 
-//console.log(testCases.id);
+//console.log(getTestCases( ));
 app.use(bodyParser.urlencoded({extended: true}));
 //getQuestionByID(1);
 app.post("/get",(req,res)=>{
@@ -26,12 +26,33 @@ app.post("/getOne",(req,res)=>{
 
 app.post("/getRound",(req,res)=>{
   getByRound(req,res);
+  
 })
+// async function createTestCases(req, res) {
+//   try {
+//      const testCase = await TestCaseModel.create({
+//       expectedOutput: req.body.expectedOutput,
+//       input: req.body.input,
+//       number: req.body.number,
+//       hidden: req.body.hidden,
+//       time: req.body.time,
+//       memory: req.body.memory,
+//       question: req.body.question
+//     });
+//     await testCase.save();
 
+//     return res.status(201).json(testCase);
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: error.message,
+//     })
+//   }
+// }
 async function getQuestionByID(req,res){
     try{
         const questions=await ques.where("id").equals(req.body.id);
         console.log(questions);
+        return res.status(201).json(questions);
     }
     catch (error) {
         return res.status(500).json({
@@ -45,9 +66,7 @@ async function getAll(req,res){
         const questionsAll=await ques.find();
         console.log(questionsAll);
         //res.status(200).send("Status Working");
-        return res.status(201).send({
-        message: "Questions Fetched",
-          });
+        return res.status(201).json(questionsAll);
     }
     catch (error) {
         return res.status(500).json({
@@ -60,6 +79,7 @@ async function getByRound(req,res){
   try{
     const questionByRound= await ques.where("round").equals(req.body.round);
     console.log(questionByRound);
+    return res.status(201).json(questionByRound);
   }
   catch(error){
     return res.status(500).json({
@@ -103,6 +123,7 @@ async function createQuestion(req, res) {   //admin only
         sourceLimit: req.body.sourceLimit,
         round: req.body.round,
         //testCases: arr,
+        //testCases: testCase.id,
       });
       await Ques.save();
       //await testCase.save();

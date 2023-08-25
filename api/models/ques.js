@@ -12,7 +12,7 @@ const TestCaseSchema = new mongoose.Schema({
   //question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" }
   question: {type: String}
 });
-
+//module.exports = mongoose.model("Question", quesSchema)   
 const quesSchema = new mongoose.Schema({
   //id: false,
   question: {type: String, required: true, unique: true },
