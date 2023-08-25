@@ -1,7 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const morgan = require("morgan");
+
+const morgan = require("morgan")
 const os = require("os");
+const TestCaseRouter = require("./api/routes/testCaseRouter")
+
 require("dotenv").config();
 
 const app = express();
@@ -24,9 +27,13 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 // Setting up routes
-app.get("/ping", (req, res) => {
+app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
+
+
+app.use("/api/testcases/", TestCaseRouter)
+
 
 // Starting Server
 app.listen(8080, () => {
