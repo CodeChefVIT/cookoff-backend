@@ -13,9 +13,9 @@ router.post('/create', (req, res) => {
     res.sendStatus(201);    
 })
 
-router.get("/create",(req,res) =>{
-    submit.print();
-    res.send("the function call worked");
+router.post("/test",(req,res) =>{
+    submit.getdata(req,res);
+    res.sendStatus(200);
 })
 
 module.exports = router
