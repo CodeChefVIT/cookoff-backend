@@ -1,9 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
-
 const morgan = require("morgan")
 const os = require("os");
 const TestCaseRouter = require("./api/routes/testCaseRouter")
+const authRoute = require('./api/routes/auth');
 
 require("dotenv").config();
 
@@ -33,6 +33,7 @@ app.get("/ping", (_, res) => {
 
 
 app.use("/api/testcases/", TestCaseRouter)
+app.use(authRoute);
 
 
 // Starting Server
