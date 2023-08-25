@@ -1,6 +1,4 @@
-
-const TestCaseModel = require("../models/testCasesModel.js")
-
+const TestCaseModel = require("../models/testCasesModel.js");
 
 async function createTestCases(req, res) {
   try {
@@ -11,17 +9,15 @@ async function createTestCases(req, res) {
       hidden: req.body.hidden,
       time: req.body.time,
       memory: req.body.memory,
-      question: req.body.question
+      question: req.body.question,
     });
-
-    return res.status(201).json(testCase);
+    result = await testCase.save();
+    return res.status(201).json(result);
   } catch (error) {
     return res.status(500).json({
-      message: "Something went wrong"
-    })
+      message: "Error creating testcase",
+    });
   }
 }
 
-module.exports = createTestCases
-
-
+module.exports = createTestCases;
