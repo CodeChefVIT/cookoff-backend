@@ -1,5 +1,6 @@
-const express = require("express")
-import TestCaseModel from "./testCasesModel.js"
+
+const TestCaseModel = require("../models/testCasesModel.js")
+
 
 async function createTestCases(req, res) {
   try {
@@ -21,4 +22,6 @@ async function createTestCases(req, res) {
   }
 }
 
-export default createTestCases
+module.exports = createTestCases
+
+
