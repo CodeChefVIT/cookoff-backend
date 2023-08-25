@@ -1,9 +1,9 @@
 name: Publish Docker Image to Docker Hub
 
 on:
-  pull_request:
-    types:
-      - closed # Change this to the branch you want to trigger on
+  push:
+    branches:
+      - main # Change this to the branch you want to trigger on
 
 jobs:
   build-and-push:
