@@ -3,7 +3,7 @@ name: Publish Docker Image to Docker Hub
 on:
   push:
     branches:
-      - main # Change this to the branch you want to trigger on
+      - master # Change this to the branch you want to trigger on
 
 jobs:
   build-and-push:
