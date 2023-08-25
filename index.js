@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
+const ApiRouter = require("./api/routes/api.js")
 const os = require("os");
 require("dotenv").config();
 
@@ -24,9 +25,11 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 // Setting up routes
-app.get("/ping", (req, res) => {
+app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
+
+app.use("/api", ApiRouter)
 
 // Starting Server
 app.listen(8080, () => {
