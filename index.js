@@ -1,10 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const morgan = require("morgan")
+const morgan = require("morgan");
 const os = require("os");
-const TestCaseRouter = require("./api/routes/testCaseRouter")
-const authRoute = require('./api/routes/auth');
-
+const TestCaseRouter = require("./api/routes/testCaseRouter");
+const authRoute = require("./api/routes/auth");
+const quesRoute = require("./api/routes/questionsRouter");
 require("dotenv").config();
 
 const app = express();
@@ -31,10 +31,9 @@ app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
 
-
-app.use("/api/testcases/", TestCaseRouter)
-app.use('/auth/',authRoute);
-
+app.use("/api/testcases/", TestCaseRouter);
+app.use("/auth/", authRoute);
+app.use("/ques/", quesRoute);
 
 // Starting Server
 app.listen(8080, () => {
