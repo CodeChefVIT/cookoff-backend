@@ -9,8 +9,8 @@
 
 #Have added nodemon for convinence
 
-package-lock.json
-package.json
+/package-lock.json
+/package.json
 
-/schema/question.js
-/schema/testcase.js
+/api/models/question.js
+/api/models/testcase.js

@@ -1,6 +1,6 @@
-const submission_db = require("D:/attempted JS/cookoff-backend/schema/submission.js");
-const questiondb = require("D:/attempted JS/cookoff-backend/schema/question.js");
-const testdb = require("d:/attempted JS/cookoff-backend/schema/testcase.js");
+const submission_db = require("../models/submission.js");
+const questiondb = require("../models/question.js");
+const testdb = require("../models/testcase.js");
 
 class submission{
     async create(req,res){
