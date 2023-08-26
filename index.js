@@ -5,6 +5,7 @@ const os = require("os");
 const TestCaseRouter = require("./api/routes/testCaseRouter");
 const authRoute = require("./api/routes/auth");
 const quesRoute = require("./api/routes/questionsRouter");
+const subroute = require("./api/routes/submission");
 require("dotenv").config();
 
 const app = express();
@@ -34,6 +35,7 @@ app.get("/ping", (_, res) => {
 app.use("/api/testcases/", TestCaseRouter);
 app.use("/auth/", authRoute);
 app.use("/ques/", quesRoute);
+app.use("/submit/",subroute);
 
 // Starting Server
 app.listen(8080, () => {
