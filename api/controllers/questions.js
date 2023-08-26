@@ -1,4 +1,4 @@
-const ques = require("./ques");
+const ques = require("../models/ques");
 
 async function getQuestionByID(req, res) {
   try {
