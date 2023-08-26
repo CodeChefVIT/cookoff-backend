@@ -1,6 +1,7 @@
 const TestCaseModel = require("../models/testCasesModel.js");
+const QuestionModel = require("../models/questionModel.js");
 
-async function createTestCases(req, res) {
+const createTestCase = async (req, res) => {
   try {
     const testCase = await TestCaseModel.create({
       expectedOutput: req.body.expectedOutput,
@@ -11,13 +12,31 @@ async function createTestCases(req, res) {
       memory: req.body.memory,
       question: req.body.question,
     });
-    result = await testCase.save();
-    return res.status(201).json(result);
+
+    const question = await QuestionModel.findById(req.body.question);
+    question.testCases.push(testCase);
+    await question.save();
+
+    return res.status(201).json(testCase);
   } catch (error) {
     return res.status(500).json({
-      message: "Error creating testcase",
+      message: "Something went wrong",
     });
   }
-}
+};
 
-module.exports = createTestCases;
+const deleteTestCase = async (req, res) => {
+  try {
+    await TestCaseModel.deleteOne({ _id: req.params.id });
+    return res.status(201).json({ message: "Succesfully deleted test case" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+module.exports = {
+  createTestCase,
+  deleteTestCase,
+};

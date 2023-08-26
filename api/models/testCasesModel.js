@@ -8,11 +8,9 @@ const TestCaseSchema = new mongoose.Schema({
   time: { type: Number, default: 0 },
   memory: { type: Number, default: 0 },
   explanation: { type: String },
-  question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" }
+  question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
 });
 
-const TestCaseModel = mongoose.model('Testcase', TestCaseSchema);
+const TestCaseModel = mongoose.model("Testcase", TestCaseSchema);
 
-
-module.exports = TestCaseModel
-
+module.exports = TestCaseModel;
