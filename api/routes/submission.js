@@ -8,14 +8,12 @@ router.use(express.json());
 router.use(express.urlencoded())
 
 router.post('/create', (req, res) => {
-    console.log("The route worked");
-    submit.create(req,res);
-    res.sendStatus(201);    
+    //console.log("The route worked");
+    submit.create(req,res);    
 })
 
 router.post("/test",(req,res) =>{
     submit.getdata(req,res);
-    res.sendStatus(200);
 })
 
 module.exports = router
