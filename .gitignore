@@ -6,8 +6,3 @@
 .env
 
 /node_modules
-
-#Have added nodemon for convinence
-
-/package-lock.json
-/package.json
