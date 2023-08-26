@@ -1,13 +1,16 @@
 const express = require("express");
-const {createQuestion, getAll, getByRound, getQuestionByID, } = require("../controllers/questions");
-const Router = express.Router;
+const router = express.Router();
 
+const {
+  createQuestion,
+  getAll,
+  getByRound,
+  getQuestionByID,
+} = require("../controllers/questions");
 
-let router = Router()
+router.post("/createQues", createQuestion);
+router.get("/getOne", getAll);
+router.post("/getId", getQuestionByID);
+router.post("/getRound", getByRound);
 
-router.post("/createQues",createQuestion);
-router.post("/getOne",getAll);
-router.post("/getId",getQuestionByID);
-router.post("/getRound", getByRound)
-// module.exports = router;
-
+module.exports = router;
