@@ -11,6 +11,3 @@
 
 /package-lock.json
 /package.json
-
-/api/models/question.js
-/api/models/testcase.js

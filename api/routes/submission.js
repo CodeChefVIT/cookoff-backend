@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const submission = require("D:/attempted JS/cookoff-backend/api/submission.js");
+const submission = require("../controllers/submission.js");
 
 const submit = new submission;
 
