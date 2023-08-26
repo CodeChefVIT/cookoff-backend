@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+require("dotenv").config();
 const key = process.env.ACCESS_KEY_SECRET;
 
 function verifyToken(req, res, next) {
