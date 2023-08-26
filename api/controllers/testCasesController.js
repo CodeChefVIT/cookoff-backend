@@ -1,5 +1,5 @@
 const TestCaseModel = require("../models/testCasesModel.js");
-const QuestionModel = require("../models/questionModel.js");
+const QuestionModel = require("../models/ques.js");
 
 const createTestCase = async (req, res) => {
   try {
