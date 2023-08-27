@@ -2,9 +2,8 @@ const mongoose = require("mongoose");
 
 
 const quesSchema = new mongoose.Schema({
-  //id: false,
-  question: { type: String, required: true, unique: true },
-  //id: {type: Number, required: true },
+  name: { type: String, required: true, unique: true },
+  objective: { type: String, required: true },
   inputFormat: [{ type: String }],
   outputFormat: [{ type: String }],
   constraints: [{ type: String, required: true }],
@@ -13,7 +12,7 @@ const quesSchema = new mongoose.Schema({
   timeLimit: { type: String, required: true },
   sourceLimit: { type: String, required: true },
   round: { type: Number, required: true },
-  testCases: [{ type: mongoose.Schema.Types.ObjectId, ref: "TestCaseSchema" }],
+  testCases: [{ type: mongoose.Schema.Types.ObjectId, ref: "TestCases" }],
 });
 
 module.exports = mongoose.model("Question", quesSchema);

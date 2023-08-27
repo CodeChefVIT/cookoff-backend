@@ -43,6 +43,44 @@ async function getByRound(req, res) {
   }
 }
 
+async function deleteQuestion(req,res){
+  try{
+    const deletedItem = await ques.findByIdAndDelete(req.params.id);
+    console.log(req.body.id)
+    if (!deletedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    return res.status(201).json({
+      message: "Successfully Deleted"
+    })
+  }
+  catch (error){
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function updateQuestion(req,res){
+  try {
+    const updatedData = await ques.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: req.body, 
+      },
+      { new: true } 
+    );
+
+    if (!updatedData) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    return res.status(200).json(updatedData);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 async function createQuestion(req, res) {
   //admin only
   try {
@@ -76,4 +114,6 @@ module.exports = {
   getAll,
   getByRound,
   getQuestionByID,
+  updateQuestion,
+  deleteQuestion
 };
