@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken')
 const jwtController = require('../controllers/jwtController');
 
 const authController = {
@@ -14,8 +15,10 @@ const authController = {
                 return res.status(403).json({ message: 'User is disabled' });
             }
             if (await bcrypt.compare(password, user.password)) {
-                const accessToken = jwtController.signAccessToken(user.regNo);
-                const refreshToken = jwtController.signRefreshToken(user.regNo);
+                user.tokenVersion += 1;
+                await user.save();
+                const accessToken = jwtController.signAccessToken(user.regNo, user.userRole, user.tokenVersion);
+                const refreshToken = jwtController.signRefreshToken(user.regNo, user.userRole);
                 user.refreshToken = refreshToken;
                 await user.save();
                 res.header('Authorization', `Bearer ${accessToken}`);
@@ -53,19 +56,43 @@ const authController = {
         try {
             const user = await User.findOne({ refreshToken });
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Invalid refreshToken' });
             }
             const storedRefreshToken = user.refreshToken;
             if (!storedRefreshToken) {
-                return res.status(400).json({ message: 'No refresh token found for this user' });
+                return res.status(400).json({ message: 'Invalid refreshToken' });
             }
-            const newAccessToken = jwtController.signAccessToken(user.refreshToken);
+            user.tokenVersion += 1;
+            await user.save();
+            const newAccessToken = jwtController.signAccessToken(user.regNo, user.userRole, user.tokenVersion);
             res.header('Authorization', `Bearer ${newAccessToken}`);
             res.json({ accessToken: newAccessToken });
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
+    
+    logout: async (req, res) => {
+        const authHeader = req.header('Authorization');
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Access denied. Token missing.' });
+        }
+        const token = authHeader.replace('Bearer ', '');
+        try {
+            const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
+            const user = await User.findOne({ regNo: decoded.regNo });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            user.tokenVersion = 0;
+            user.refreshToken = null;
+            await user.save();
+            res.status(200).json({ message: 'Logout successful' });
+        } catch (error) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
 };
 
 module.exports = authController;
