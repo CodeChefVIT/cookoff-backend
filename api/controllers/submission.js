@@ -3,6 +3,7 @@ const questiondb = require("../models/ques.js");
 const testdb = require("../models/testCasesModel.js");
 
 class submission{
+    
     async create(req,res){
         const {user,language,code,question_id} = req.body;
         if(!user || !language || !code || !question_id){
@@ -24,8 +25,9 @@ class submission{
     async getdata(req,res){
         const {question_id,code,language_id} = req.body;
         const testcase = await questiondb.findById(question_id,'testCases');
-        for(let i = 0;i<testcase.length;i++){
-            const current = await testdb.findById(testcase[i]);
+        const testcases = testcase.testCases;
+        for(let i = 0;i<testcases.length;i++){
+            const current = await testdb.findById(testcases[i]);
             const data_sent_to_judge0 = {
                 source_code : code,
                 language_id : language_id,
