@@ -1,11 +1,12 @@
-const {Schema,model} = require("mongoose");
+const {Schema,model, default: mongoose} = require("mongoose");
 
 const submission_schema = new Schema({
-    user : {type:Number,required:true},
-    language : {type:String,required:true},
+    user : {type:String,required:true},
+    language_id : {type:Number,required:true},
     code : {type:String,required:true},
-    pass : {type:Boolean,required:true,default:false},
-    question_id : {type:Number}}, //this will act as an indicator to which question in the question DB shld be tested against the code
+    pass : [{type:Boolean,required:true,default:false}],
+    question_id : {type:mongoose.Schema.Types.ObjectId, ref : "Questions", required: true},
+    score : {type: Number}},
     {timestamps : true}
 );
 
