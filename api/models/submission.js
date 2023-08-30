@@ -4,7 +4,7 @@ const submission_schema = new Schema({
     user : {type:String,required:true},
     language_id : {type:Number,required:true},
     code : {type:String,required:true},
-    pass : [{type:Boolean,required:true,default:false}],
+    max_score : {type:Number},
     question_id : {type:mongoose.Schema.Types.ObjectId, ref : "Questions", required: true},
     score : {type: Number}},
     {timestamps : true}
