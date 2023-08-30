@@ -4,16 +4,16 @@ const submission = require("../controllers/submission.js");
 
 const submit = new submission();
 
-// router.use(express.json());
-// router.use(express.urlencoded())
-
-router.post("/create", (req, res) => {
-  //console.log("The route worked");
-  submit.create(req, res);
-});
-
-router.post("/test", (req, res) => {
+router.post("/eval", (req, res) => {
   submit.getdata(req, res);
 });
+
+router.get("/leaderboard",(req,res) => {
+  submit.leaderboard(req,res);
+})
+
+router.get("/score/:user",(req,res)=>{
+  submit.findscore(req,res);
+})
 
 module.exports = router;
