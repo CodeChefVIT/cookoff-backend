@@ -12,7 +12,7 @@ const quesSchema = new mongoose.Schema({
   timeLimit: { type: String, required: true },
   sourceLimit: { type: String, required: true },
   round: { type: Number, required: true },
-  testCases: [{ type: mongoose.Schema.Types.ObjectId, ref: "TestCases" }],
+  testCases: [{ type: mongoose.Schema.Types.ObjectId, ref: "Testcase" }],
 });
 
 module.exports = mongoose.model("Question", quesSchema);

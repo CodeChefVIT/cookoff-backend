@@ -11,9 +11,9 @@ const {
 } = require("../controllers/questions");
 
 router.post("/createQues", createQuestion);
-router.get("/getOne", getAll);
+router.get("/getOne", getAll);  
 router.post("/getId", getQuestionByID);
 router.post("/getRound", getByRound);
-router.post("/updateQuestion", updateQuestion);
-router.post("/deleteQuestion",deleteQuestion);
+router.put("/updateQuestion/:id", updateQuestion);
+router.delete("/deleteQuestion/:id",deleteQuestion);
 module.exports = router;
