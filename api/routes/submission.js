@@ -8,4 +8,12 @@ router.post("/eval", (req, res) => {
   submit.getdata(req, res);
 });
 
+router.get("/leaderboard",(req,res) => {
+  submit.leaderboard(req,res);
+})
+
+router.get("/score/:user",(req,res)=>{
+  submit.findscore(req,res);
+})
+
 module.exports = router;
