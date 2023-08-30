@@ -115,9 +115,10 @@ class submission{
                 })
             }
             let index = "";
-            for(let i in msg){
+            for(let i of msg){
+                console.log(i);
                 if(i.substring("Output")){
-                    index = msg[i];
+                    index = i;
                     break;
                 }
             }
@@ -156,7 +157,8 @@ class submission{
                 console.log(quest);
                 maxscr.push(maxscore);
             }
-            error = await scores_db.updateOne({user : user},{score : scr, max : maxscr,question_id : quest},{upsert : true}).then(() => "").catch(err => err.errors);
+            error = await scores_db.updateOne({user : user},{score : scr, max : maxscr,question_id : quest},{upsert : true})
+            .then(() => "").catch(err => err.errors);
             return !error?"Score DB has been saved":error;
         }
     }
