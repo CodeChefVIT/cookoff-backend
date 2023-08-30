@@ -38,7 +38,6 @@ async function verifyRefreshToken(req, res, next) {
             if (err) {
                 return res.status(401).json({ message: 'refreshToken expired' });
             }
-            console.log(decoded);
             req.user = user;
             next();
         
@@ -49,8 +48,29 @@ async function verifyRefreshToken(req, res, next) {
     }
 }
 
+async function verifyAdminToken(req, res, next) {
+    const authHeader = req.header('Authorization');
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Access denied. Token missing.' });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    try {
+        const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
+        const user = await User.findOne({ regNo: decoded.regNo });
+        const role = decoded.userRole;
+        if(!user || user.tokenVersion !== decoded.tokenVersion || role !== 'admin'){
+            return res.status(403).json({message: 'Unauthorized'});
+        }
+        req.user = decoded;
+        next();
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid token.' });
+    }
+}
+
 
 module.exports = {
     verifyAccessToken,
-    verifyRefreshToken
+    verifyRefreshToken,
+    verifyAdminToken
 };
