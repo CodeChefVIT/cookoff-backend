@@ -11,16 +11,14 @@ class submission{
         const check = await submission_db.findOne({user : user , question_id : question_id});
         let error = "";
         if(check){
-            error = await submission_db.updateOne({user : user, question_id : question_id},{code : code,language_id : language_id,score : score,max_score :max})
-            .then(() => "")
-            .catch(err => err.errors);
-            return !error?"Updated exisiting record":error;
+            return await submission_db.updateOne({user : user, question_id : question_id},{code : code,language_id : language_id,score : score,max_score :max})
+            .then(() => "Submission record has been updated")
+            .catch(() => "Error faced during updating the sub DB");
         }
         else{
-            error = await submission_db.create({user : user, language_id : language_id, code : code, question_id : question_id,score : score,max_score : max})
-            .then(() => "")
-            .catch(err => err.errors);
-            return !error?"Submission record has been saved":error;
+            return await submission_db.create({user : user, language_id : language_id, code : code, question_id : question_id,score : score,max_score : max})
+            .then(() => "Submission record has been saved")
+            .catch(err => "Error faced during creating the entry");
         }
     }
 
@@ -38,6 +36,7 @@ class submission{
         var tests = [];
         for(let i in testcases){
             const current = await testdb.findById(testcases[i]);
+            console.log(btoa(code));
             tests.push({
                 source_code : btoa(code),
                 language_id : language_id,
@@ -57,17 +56,21 @@ class submission{
                 header : {
                     'Content-Type' : "application/JSON"
                 }
-            }).then(response => response.data)
-        console.log(tokens);        
+            }).then(response => response.data)       
         let str = [];
         tokens.forEach(element => {
             str.push(element.token);
         });
-        console.log(str);
-        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+"&base64_encoded=false&fields=status_id,stdout,stderr";
+        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+"&base64_encoded=false&fields=status_id,stdout,stderr,expected_output";
         console.log(url);
         let completion = false;
-        let msg = [];
+        let data_sent_back = {
+            error : "",
+            admin_logs : "",
+            Sub_db : "",
+            Score_db : "",
+            leaderbd : ""
+        };
         while(!completion){
             let score = 0;
             completion = true;
@@ -82,60 +85,34 @@ class submission{
                         score += 1;
                         break;
                     case 4:
-                        msg.push("Ouput received :- "+element.stdout);
+                        data_sent_back.error = "Expected output :- "+element.expected_output+ "\n but received " + element.stdout;
                         break;
                     case 5:
-                        msg.push("Time limit exceeded");
+                        data_sent_back.error = "Time limit exceeded";
                         break;
                     case 6:
-                        msg.push("Complilation error");
+                        data_sent_back.error = "Complilation error :-" + element.stderr;
                         break;
                     case 13:
-                        msg.push("Server side error");
+                        data_sent_back.error = "Server side error please contact the nearest admin";
                         break;
                     default:
-                        msg.push("Runtime error");
-                        console.log(element.status_id);
+                        data_sent_back.error = "Runtime error was faced :- " + element.stderr;
+                        data_sent_back.admin_logs = "Runtime error is of code " + element.status_id;
                         break;
                 }
             })
-            if(msg.includes("Complilation error")){
-                res.status(200).json({
-                    message : "There was a complilation error :- " + result.stderr[msg.indexOf("Complilation error")]
-                })
-            }
-            else if(msg.includes("Server side error")){
-                res.status(200).json({
-                    message : "There was an issue connecting to the judge0"
-                })
-            }
-            else if(msg.includes("Runtime error")){
-                res.status(200).json({
-                    message : "There was an runtime error"
-                })
-            }
-            let index = "";
-            for(let i of msg){
-                console.log(i);
-                if(i.substring("Output")){
-                    index = i;
-                    break;
-                }
-            }
-            msg = [index];
+            console.log(data_sent_back);
             if(completion){
-                msg.push(await this.create(req,res,score,result.length));
-                msg.push(await this.totalscore(req,score,result.length));
-                this.update_totals(req);
-                console.log(msg);
-                res.status(201).json({
-                    message : msg
-                })
+                data_sent_back.Sub_db = await this.create(req,res,score,result.length);
+                data_sent_back.Score_db =await this.create_score(req,score,result.length);
+                data_sent_back.leaderbd = await this.update_totals(req,res);
+                res.status(201).json(data_sent_back);
             }
         }
     }
 
-    async totalscore(req,score,maxscore){
+    async create_score(req,res,score,maxscore){
         const {user,question_id} = req.body;
         const exist = await scores_db.findOne({user : user});
         let error = "";
@@ -157,9 +134,9 @@ class submission{
                 console.log(quest);
                 maxscr.push(maxscore);
             }
-            error = await scores_db.updateOne({user : user},{score : scr, max : maxscr,question_id : quest},{upsert : true})
-            .then(() => "").catch(err => err.errors);
-            return !error?"Score DB has been saved":error;
+            return await scores_db.updateOne({user : user},{score : scr, max : maxscr,question_id : quest},{upsert : true})
+                    .then(() => "Score DB has been saved")
+                    .catch(err => "Error faced while updating scores");
         }
     }
 
@@ -177,19 +154,19 @@ class submission{
         res.send(details);
     }
 
-    async update_totals(req){
+    async update_totals(req,res){
         const {user} = req.body;
-        const all = await scores_db.find({user : user});
-        all.forEach(async element => {
-            let currtotal = 0;
-            console.log(element.score);
-            console.log(element.max);
-            (element.score).forEach(ele => currtotal+=ele);
-            let maxtotal = 0;
-            (element.max).forEach(ele => maxtotal+=ele);
-            console.log(currtotal,maxtotal);
-            await scores_db.updateOne({user : element.user},{currtotal : currtotal , maxtotal : maxtotal});
-        })
+        const element = await scores_db.findOne({user : user});
+        let currtotal = 0;
+        console.log(element.score);
+        console.log(element.max);
+        (element.score).forEach(ele => currtotal+=ele);
+        let maxtotal = 0;
+        (element.max).forEach(ele => maxtotal+=ele);
+        console.log(currtotal,maxtotal);
+        return (await scores_db.updateOne({user : user},{currtotal : currtotal , maxtotal : maxtotal})
+                .then(() => "The leaderboards are updated")
+                .catch(() => "Error faced while updating the leaderboards"));
     }
 }
 
