@@ -32,10 +32,10 @@ app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
 
-app.use("/api/testcases/", TestCaseRouter);
+app.use("/testcases/", TestCaseRouter);
 app.use("/auth/", authRoute);
 app.use("/ques/", quesRoute);
-app.use("/submit/",subroute);
+app.use("/submit/", subroute);
 
 
 // Starting Server
