@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const os = require("os");
+const cors = require("cors")
 const TestCaseRouter = require("./api/routes/testCaseRouter");
 const authRoute = require("./api/routes/auth");
 const quesRoute = require("./api/routes/questionsRouter");
@@ -26,16 +27,17 @@ mongoose
 // Using middleware
 app.use(express.json());
 app.use(morgan("tiny"));
+app.use(cors());
 
 // Setting up routes
 app.get("/ping", (_, res) => {
   res.status(200).json({ msg: "ping", hostname: os.hostname() });
 });
 
-app.use("/api/testcases/", TestCaseRouter);
+app.use("/testcases/", TestCaseRouter);
 app.use("/auth/", authRoute);
 app.use("/ques/", quesRoute);
-app.use("/submit/",subroute);
+app.use("/submit/", subroute);
 
 
 // Starting Server
