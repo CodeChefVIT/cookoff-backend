@@ -3,7 +3,8 @@ const questiondb = require("../models/ques.js");
 const testdb = require("../models/testCasesModel.js");
 const axios = require("axios");
 const scores_db = require("../models/score.js");
-const ques = require("../models/ques.js");
+const user = require("../models/User.js");
+
 
 class submission{
     async create(req,res,score,max){
@@ -11,7 +12,8 @@ class submission{
         const check = await submission_db.findOne({user : user , question_id : question_id});
         let error = "";
         if(check){
-            return await submission_db.updateOne({user : user, question_id : question_id},{code : code,language_id : language_id,score : score,max_score :max})
+            return await submission_db.updateOne({user : user, question_id : question_id},
+                {code : code,language_id : language_id,score : score,max_score :max})
             .then(() => "Submission record has been updated")
             .catch(() => "Error faced during updating the sub DB");
         }
@@ -22,8 +24,10 @@ class submission{
         }
     }
 
-    async getdata(req,res){
-        const {user,question_id,code,language_id} = req.body;
+    async eval(req,res){
+        const reg_no = this.get_reg_no(req,res);
+        if(reg_no == 0) return;
+        const {question_id,code,language_id} = req.body;
         const check = await submission_db.findOne({user : user,question_id : question_id},"code");
         if(check && check.code == code){
             res.status(200).json({
@@ -61,7 +65,8 @@ class submission{
         tokens.forEach(element => {
             str.push(element.token);
         });
-        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+"&base64_encoded=false&fields=status_id,stdout,stderr,expected_output";
+        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+
+        "&base64_encoded=false&fields=status_id,stdout,stderr,expected_output";
         console.log(url);
         let completion = false;
         let data_sent_back = {
@@ -168,6 +173,24 @@ class submission{
                 .then(() => "The leaderboards are updated")
                 .catch(() => "Error faced while updating the leaderboards"));
     }
-}
 
+    async get_reg_no(req,res){
+        console.log(req.body);
+        const authHeader = req.header('Authorization');
+        if (!authHeader) {
+            res.status(401).json({ message: 'Access denied. Token missing.' });
+            return 0;
+        }
+        const token = authHeader.replace('Bearer ', '');
+        try {
+            const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
+            res.send(decoded);
+            return 1;
+        }
+        catch (error) {
+            res.status(401).json({ message: 'Invalid token.' });
+            return 0;
+        }
+    }
+}
 module.exports = submission;
