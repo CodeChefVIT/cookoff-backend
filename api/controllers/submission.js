@@ -4,6 +4,7 @@ const testdb = require("../models/testCasesModel.js");
 const axios = require("axios");
 const scores_db = require("../models/score.js");
 const user = require("../models/User.js");
+const jwt = require("jsonwebtoken");
 
 
 class submission{
@@ -25,9 +26,28 @@ class submission{
     }
 
     async eval(req,res){
-        const reg_no = this.get_reg_no(req,res);
+        const reg_no = await this.get_reg_no(req,res);
+        console.log(reg_no);
         if(reg_no == 0) return;
         const {question_id,code,language_id} = req.body;
+        if(!question_id){
+            res.status(400).json({
+                message : "Question ID was not given"
+            })
+            return;
+        }
+        if(!code){
+            res.status(400).json({
+                message : "Code was not given"
+            })
+            return;
+        }
+        if(!language_id){
+            res.status(400).json({
+                message : "Language ID not given"
+            })
+            return;
+        }
         const check = await submission_db.findOne({user : user,question_id : question_id},"code");
         if(check && check.code == code){
             res.status(200).json({
@@ -37,7 +57,7 @@ class submission{
         }
         const testcase = await questiondb.findById(question_id,'testCases');
         const testcases = testcase.testCases;
-        var tests = [];
+        let tests = [];
         for(let i in testcases){
             const current = await testdb.findById(testcases[i]);
             console.log(btoa(code));
@@ -175,19 +195,16 @@ class submission{
     }
 
     async get_reg_no(req,res){
-        console.log(req.body);
         const authHeader = req.header('Authorization');
         if (!authHeader) {
             res.status(401).json({ message: 'Access denied. Token missing.' });
             return 0;
         }
         const token = authHeader.replace('Bearer ', '');
-        try {
+        try{   
             const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
-            res.send(decoded);
-            return 1;
-        }
-        catch (error) {
+            return decoded.regNo;
+        } catch{
             res.status(401).json({ message: 'Invalid token.' });
             return 0;
         }
