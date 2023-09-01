@@ -71,7 +71,7 @@ const authController = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
-    
+
     logout: async (req, res) => {
         const authHeader = req.header('Authorization');
         if (!authHeader) {
