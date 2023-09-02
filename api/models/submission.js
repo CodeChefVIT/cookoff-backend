@@ -1,7 +1,7 @@
 const {Schema,model, default: mongoose} = require("mongoose");
 
 const submission_schema = new Schema({
-    user : {type:String,required:true},
+    regNo : {type:String,required:true},
     language_id : {type:Number,required:true},
     code : {type:String,required:true},
     max_score : {type:Number,required:true},
