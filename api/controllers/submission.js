@@ -91,7 +91,6 @@ class submission{
         let completion = false;
         let data_sent_back = {
             error : "",
-            admin_logs : "",
             Sub_db : "",
             Score : ""
         };
@@ -126,7 +125,6 @@ class submission{
                         break;
                     default:
                         data_sent_back.error = "Runtime error was faced :- " + element.stderr;
-                        data_sent_back.admin_logs = "Runtime error is of code " + element.status_id;
                         break;
                 }
             })
