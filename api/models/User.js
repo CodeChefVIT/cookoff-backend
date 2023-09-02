@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
         tokenVersion:{
             type: Number,
             default: 0
+        },
+        score:{
+            type: Number,
+            default : 0
         }
     },
     {

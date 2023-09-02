@@ -16,8 +16,4 @@ router.get("/score/:user",(req,res)=>{
   submit.findscore(req,res);
 })
 
-router.get("/regno", (req,res) => {
-  submit.get_reg_no(req,res);
-})
-
 module.exports = router;
