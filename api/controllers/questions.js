@@ -1,70 +1,18 @@
 const ques = require("../models/ques");
-
-
-async function getAllAdmin(req, res) {
-  try {
-    const questionsAll = await ques.find().populate("testCases");
-    
-    if(questionsAll.length==0){
-        return res.status(404).json({
-        message: "No questions found",
-      })
-    }
-    else{
-       return res.status(201).json(questionsAll);
-   }
-}
- catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
-}
-
-async function getQuestionByIDAdmin(req, res) {
-  try {
-    const questions = await ques.findById(req.body.id).populate("testCases");
-    
-    if(questions.length==0){
-      return res.status(404).json({
-        message: "No questions found",
-      })
-    }
-    else{
-      return res.status(201).json(questions);
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
-}
-
-async function getByRoundAdmin(req, res) {
-  try {
-    const questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
-    
-    if(questionByRound.length==0){
-      return res.status(404).json({
-        message: "No questions found",
-      })
-    }
-    else{
-      return res.status(201).json(questionByRound);
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
-}
-
-
+const jwt = require("jsonwebtoken");
 
 async function getQuestionByID(req, res) {
   try {
-    const questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
-    
+    var questions;
+    const authHeader = req.header('Authorization');
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    if(decoded.userRole=='admin'){
+        questions = await ques.findById(req.body.id).populate("testCases");
+     }
+    else{
+      questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
+    }
     if(questions.length==0){
       return res.status(404).json({
         message: "No questions found",
@@ -73,6 +21,7 @@ async function getQuestionByID(req, res) {
     else{
       return res.status(201).json(questions);
     }
+    
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -82,8 +31,16 @@ async function getQuestionByID(req, res) {
 
 async function getAll(req, res) {
   try {
-    const questionsAll = await ques.find().populate({path: 'testCases', match: {hidden: false}});
-    
+    var questionsAll;
+    const authHeader = req.header('Authorization');
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    if(decoded.userRole=='admin'){
+      questionsAll = await ques.find().populate("testCases");
+    }
+    else{
+    questionsAll = await ques.find().populate({path: 'testCases', match: {hidden: false}});
+    }
     if(questionsAll.length==0){
         return res.status(404).json({
         message: "No questions found",
@@ -102,7 +59,17 @@ async function getAll(req, res) {
 
 async function getByRound(req, res) {
   try {
-    const questionByRound = await ques.where("round").equals(req.body.round).populate({path: 'testCases', match: {hidden: false}});
+    var questionByRound;
+    const authHeader = req.header('Authorization');
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    if(decoded.userRole=='admin'){
+      questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
+    }
+    else{
+      questionByRound = await ques.where("round").equals(req.body.round).populate({path: 'testCases', match: {hidden: false}});
+    
+    }
     
     if(questionByRound.length==0){
       return res.status(404).json({
@@ -191,8 +158,5 @@ module.exports = {
   getByRound,
   getQuestionByID,
   updateQuestion,
-  deleteQuestion,
-  getAllAdmin,
-  getByRoundAdmin,
-  getQuestionByIDAdmin
+  deleteQuestion
 };
