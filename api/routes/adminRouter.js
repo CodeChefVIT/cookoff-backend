@@ -3,7 +3,6 @@ const {verifyAdminToken} = require('../middleware/jwtMiddleware');
 const adminController = require('../controllers/adminController');
 const router = express.Router();
 
-router.use(verifyAdminToken);
 
 router.get('/dashboard', (req, res) => {
     res.json({ message: 'admin authorised' });
