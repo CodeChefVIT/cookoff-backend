@@ -11,6 +11,9 @@ async function verifyAccessToken(req, res, next) {
     try {
         const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
         const user = await User.findOne({ regNo: decoded.regNo });
+        if(!user.isActive){
+            return res.status(403).json({error: 'User is banned'})
+        }
         if(!user || user.tokenVersion !== decoded.tokenVersion){
             return res.status(403).json({message: 'Unauthorized'});
         }

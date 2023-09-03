@@ -6,6 +6,7 @@ const cors = require("cors")
 const TestCaseRouter = require("./api/routes/testCaseRouter");
 const authRoute = require("./api/routes/auth");
 const quesRoute = require("./api/routes/questionsRouter");
+const adminRoute = require("./api/routes/adminRouter")
 const subroute = require("./api/routes/submission");
 require("dotenv").config();
 
@@ -38,6 +39,7 @@ app.use("/testcases/", TestCaseRouter);
 app.use("/auth/", authRoute);
 app.use("/ques/", quesRoute);
 app.use("/submit/", subroute);
+app.use("/admin/",adminRoute);
 
 
 // Starting Server
