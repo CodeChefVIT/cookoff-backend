@@ -1,9 +1,70 @@
 const ques = require("../models/ques");
 
-async function getQuestionByID(req, res) {
+
+async function getAllAdmin(req, res) {
+  try {
+    const questionsAll = await ques.find().populate("testCases");
+    
+    if(questionsAll.length==0){
+        return res.status(404).json({
+        message: "No questions found",
+      })
+    }
+    else{
+       return res.status(201).json(questionsAll);
+   }
+}
+ catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getQuestionByIDAdmin(req, res) {
   try {
     const questions = await ques.findById(req.body.id).populate("testCases");
-    console.log(questions);
+    
+    if(questions.length==0){
+      return res.status(404).json({
+        message: "No questions found",
+      })
+    }
+    else{
+      return res.status(201).json(questions);
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getByRoundAdmin(req, res) {
+  try {
+    const questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
+    
+    if(questionByRound.length==0){
+      return res.status(404).json({
+        message: "No questions found",
+      })
+    }
+    else{
+      return res.status(201).json(questionByRound);
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+
+
+async function getQuestionByID(req, res) {
+  try {
+    const questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
+    
     if(questions.length==0){
       return res.status(404).json({
         message: "No questions found",
@@ -21,17 +82,18 @@ async function getQuestionByID(req, res) {
 
 async function getAll(req, res) {
   try {
-    const questionsAll = await ques.find().populate("testCases");
-
+    const questionsAll = await ques.find().populate({path: 'testCases', match: {hidden: false}});
+    
     if(questionsAll.length==0){
-      return res.status(404).json({
+        return res.status(404).json({
         message: "No questions found",
       })
     }
     else{
-      return res.status(201).json(questionsAll);
-    }
-} catch (error) {
+       return res.status(201).json(questionsAll);
+   }
+}
+ catch (error) {
     return res.status(500).json({
       message: error.message,
     });
@@ -40,8 +102,8 @@ async function getAll(req, res) {
 
 async function getByRound(req, res) {
   try {
-    const questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
-    console.log(questionByRound);
+    const questionByRound = await ques.where("round").equals(req.body.round).populate({path: 'testCases', match: {hidden: false}});
+    
     if(questionByRound.length==0){
       return res.status(404).json({
         message: "No questions found",
@@ -102,7 +164,7 @@ async function createQuestion(req, res) {
       name: req.body.name,
       id: req.body.id,
       inputFormat: req.body.inputFormat,
-      outputformat: req.body.outputFormat,
+      outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
       sampleTestInput: req.body.sampleTestInput,
       sampleTestOutput: req.body.sampleTestOutput,
@@ -129,5 +191,8 @@ module.exports = {
   getByRound,
   getQuestionByID,
   updateQuestion,
-  deleteQuestion
+  deleteQuestion,
+  getAllAdmin,
+  getByRoundAdmin,
+  getQuestionByIDAdmin
 };
