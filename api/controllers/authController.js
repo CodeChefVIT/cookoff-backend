@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
-const jwt = require('jsonwebtoken')
 const jwtController = require('../controllers/jwtController');
 
 const authController = {
@@ -12,7 +11,7 @@ const authController = {
                 return res.status(400).json({ message: 'User not found' });
             }
             if (!user.isActive) {
-                return res.status(403).json({ message: 'User is disabled' });
+                return res.status(403).json({ message: 'User is banned' });
             }
             if (await bcrypt.compare(password, user.password)) {
                 user.tokenVersion += 1;
@@ -48,6 +47,19 @@ const authController = {
         }
     },
 
+    dashboard: async (req, res) => {
+        try {
+            const decoded = req.user;
+            const user = await User.findOne({ regNo: decoded.regNo });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            res.status(201).json(user);
+        } catch (error) {
+            res.status(400).json({ error: 'Error' });
+        }
+    },
+
     refresh: async (req, res) => {
         const { refreshToken } = req.body;
         if (!refreshToken) {
@@ -71,15 +83,10 @@ const authController = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
-
+    
     logout: async (req, res) => {
-        const authHeader = req.header('Authorization');
-        if (!authHeader) {
-            return res.status(401).json({ message: 'Access denied. Token missing.' });
-        }
-        const token = authHeader.replace('Bearer ', '');
         try {
-            const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
+            const decoded = req.user;
             const user = await User.findOne({ regNo: decoded.regNo });
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
