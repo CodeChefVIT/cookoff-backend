@@ -12,7 +12,7 @@ const {
 } = require("../controllers/questions");
 
 router.use(verifyAccessToken)
-router.post("/createQues", verifyAdminToken, createQuestion);
+router.post("/createQues", verifyAdminToken, createQuestion); 
 router.get("/getOne", getAll);  
 router.post("/getId", getQuestionByID);
 router.post("/getRound", getByRound);

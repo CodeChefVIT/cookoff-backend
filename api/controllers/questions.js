@@ -10,7 +10,7 @@ async function getQuestionByID(req, res) {
     if(decoded.userRole=='admin'){
         questions = await ques.findById(req.body.id).populate("testCases");
      }
-    else{
+    else{ 
       questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
     }
     if(questions.length==0){
