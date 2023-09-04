@@ -19,10 +19,10 @@ const createTestCase = async (req, res) => {
     }
     await question.save();
 
-    return res.status(201).json(testCase);
+    return res.status(201).json({ message: "Inserted successfully" });
   } catch (error) {
     return res.status(500).json({
-      message: "Something went wrong",
+      message: "Failed to insert test case",
     });
   }
 };
@@ -38,7 +38,7 @@ const deleteTestCase = async (req, res) => {
     return res.status(201).json({ message: "Succesfully deleted test case" });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: "Failed to delete test case",
     });
   }
 };
@@ -75,7 +75,7 @@ const updateTestCase = async (req, res) => {
 
     return res.status(201).json({ testCase });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "Failed to update test case" });
   }
 }
 

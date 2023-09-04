@@ -2,63 +2,40 @@ const submission_db = require("../models/submission.js");
 const questiondb = require("../models/ques.js");
 const testdb = require("../models/testCasesModel.js");
 const axios = require("axios");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User.js");
-
+const scores_db = require("../models/score.js");
+const ques = require("../models/ques.js");
 
 class submission{
-    async create(req,user,score,max){
-        const {language_id,code,question_id} = req.body;
-        const check = await submission_db.findOne({regNo : user , question_id : question_id});
+    async create(req,res,score,max){
+        const {user,language_id,code,question_id} = req.body;
+        const check = await submission_db.findOne({user : user , question_id : question_id});
         let error = "";
         if(check){
-            return await submission_db.updateOne({regNo : user, question_id : question_id},
-                {code : code,language_id : language_id,score : score,max_score :max})
-            .then(async () => "Submission record has been updated")
-            .catch(() => "Error faced during updating the sub DB");
+            error = await submission_db.updateOne({user : user, question_id : question_id},{code : code,language_id : language_id,score : score,max_score :max})
+            .then(() => "")
+            .catch(err => err.errors);
+            return !error?"Updated exisiting record":error;
         }
         else{
-            return await submission_db.create({regNo : user, language_id : language_id, code : code, question_id : question_id,score : score,max_score : max})
-            .then(() => "Submission record has been saved")
-            .catch(err => "Error faced during creating the entry");
+            error = await submission_db.create({user : user, language_id : language_id, code : code, question_id : question_id,score : score,max_score : max})
+            .then(() => "")
+            .catch(err => err.errors);
+            return !error?"Submission record has been saved":error;
         }
     }
 
-    async eval(req,res){
-        const reg_no = await this.get_reg_no(req,res);
-        if(reg_no == 0) return;
-        const {question_id,code,language_id} = req.body;
-        if(!question_id){
-            res.status(400).json({
-                message : "Question ID was not given"
-            })
-            return;
-        }
-        if(!code){
-            res.status(400).json({
-                message : "Code was not given"
-            })
-            return;
-        }
-        if(!language_id){
-            res.status(400).json({
-                message : "Language ID not given"
-            })
-            return;
-        }
-        const check = await submission_db.findOne({regNo : reg_no,question_id : question_id},"code score");
+    async getdata(req,res){
+        const {user,question_id,code,language_id} = req.body;
+        const check = await submission_db.findOne({user : user,question_id : question_id},"code");
         if(check && check.code == code){
-            await this.create_score(reg_no);
-            res.status(201).json({
-                message : "No changes in source code",
-                Score : check.score,
+            res.status(200).json({
+                message : "No changes in source code"
             });
             return;
         }
-        
         const testcase = await questiondb.findById(question_id,'testCases');
         const testcases = testcase.testCases;
-        let tests = [];
+        var tests = [];
         for(let i in testcases){
             const current = await testdb.findById(testcases[i]);
             tests.push({
@@ -70,6 +47,7 @@ class submission{
                 memory_limit : current.memory,
             })
         }
+        console.log(tests);
 
         const tokens = await axios.post("http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
             {
@@ -80,20 +58,16 @@ class submission{
                     'Content-Type' : "application/JSON"
                 }
             }).then(response => response.data)
-
+        console.log(tokens);        
         let str = [];
         tokens.forEach(element => {
             str.push(element.token);
         });
-        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+
-        "&base64_encoded=false&fields=status_id,stdout,stderr,expected_output";
+        console.log(str);
+        const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+"&base64_encoded=false&fields=status_id,stdout,stderr";
         console.log(url);
         let completion = false;
-        let data_sent_back = {
-            error : "",
-            Sub_db : "",
-            Score : ""
-        };
+        let msg = [];
         while(!completion){
             let score = 0;
             completion = true;
@@ -108,82 +82,115 @@ class submission{
                         score += 1;
                         break;
                     case 4:
-                        if(element.expected_output+"\n" == element.stdout) score +=1;
-                        else {
-                            data_sent_back.error = "Expected output :- "+element.expected_output+ "\n but received " + element.stdout;
-                            completion = true;
-                        }
+                        msg.push("Ouput received :- "+element.stdout);
                         break;
                     case 5:
-                        data_sent_back.error = "Time limit exceeded";
+                        msg.push("Time limit exceeded");
                         break;
                     case 6:
-                        data_sent_back.error = "Complilation error :-" + element.stderr;
+                        msg.push("Complilation error");
                         break;
                     case 13:
-                        data_sent_back.error = "Server side error please contact the nearest admin";
+                        msg.push("Server side error");
                         break;
                     default:
-                        data_sent_back.error = "Runtime error was faced :- " + element.stderr;
+                        msg.push("Runtime error");
+                        console.log(element.status_id);
                         break;
                 }
             })
-            if(completion){
-                data_sent_back.Sub_db = await this.create(req,reg_no,score,result.length);
-                await this.create_score(reg_no);
-                data_sent_back.Score = await this.findscore(reg_no,question_id);
-                res.status(201).json(data_sent_back);
-                break;
+            if(msg.includes("Complilation error")){
+                res.status(200).json({
+                    message : "There was a complilation error :- " + result.stderr[msg.indexOf("Complilation error")]
+                })
             }
+            else if(msg.includes("Server side error")){
+                res.status(200).json({
+                    message : "There was an issue connecting to the judge0"
+                })
+            }
+            else if(msg.includes("Runtime error")){
+                res.status(200).json({
+                    message : "There was an runtime error"
+                })
+            }
+            let index = "";
+            for(let i of msg){
+                console.log(i);
+                if(i.substring("Output")){
+                    index = i;
+                    break;
+                }
+            }
+            msg = [index];
+            if(completion){
+                msg.push(await this.create(req,res,score,result.length));
+                msg.push(await this.totalscore(req,score,result.length));
+                this.update_totals(req);
+                console.log(msg);
+                res.status(201).json({
+                    message : msg
+                })
+            }
+        }
+    }
+
+    async totalscore(req,score,maxscore){
+        const {user,question_id} = req.body;
+        const exist = await scores_db.findOne({user : user});
+        let error = "";
+        if(!exist){
+            error = await scores_db.create({user : user , score : [score] ,max : [maxscore], question_id : [question_id]}).catch(err => err.errors);
+        }
+        else{
+            let maxscr = exist.max;
+            let scr = exist.score;
+            let quest = exist.question_id;
+            if(quest.includes(question_id)){
+                const index = quest.indexOf(question_id);
+                scr[index] = score;
+                maxscr[index] = maxscore;
+            }
+            else{
+                scr.push(score);
+                quest.push(question_id);
+                console.log(quest);
+                maxscr.push(maxscore);
+            }
+            error = await scores_db.updateOne({user : user},{score : scr, max : maxscr,question_id : quest},{upsert : true})
+            .then(() => "").catch(err => err.errors);
+            return !error?"Score DB has been saved":error;
         }
     }
 
     async leaderboard(req,res){
-        const all = await User.find({},'regNo score').sort({score:-1,updatedAt:1});
+        const all = await scores_db.find({},"user score").sort({currtotal:-1,updatedAt:1});
         console.log(all);
-        res.status(200).json(all);
+        res.send(all);
     }
 
-    async findscore(user, question_id){
-        const details = await submission_db.findOne({regNo : user,question_id : question_id});
-        return details.score;
+    async findscore(req,res){
+        const {user} = req.params;
+        console.log(user);
+        const details = await scores_db.findOne({user : user});
+        console.log(details);
+        res.send(details);
     }
 
-    async create_score(user){
-        const ele = await submission_db.aggregate([
-            {
-                $match : {regNo : user}
-            },
-            {
-                $group : {
-                    _id : "$regNo",
-                    total : {
-                        $sum : "$score"
-                    }
-                }
-            }
-        ])
-        const score = ele[0].total;
-        return User.updateOne({regNo : user},{score : score})
-        .then(() => "Score = " + score)
-        .catch(() => "Error occured while saving scores");
+    async update_totals(req){
+        const {user} = req.body;
+        const all = await scores_db.find({user : user});
+        all.forEach(async element => {
+            let currtotal = 0;
+            console.log(element.score);
+            console.log(element.max);
+            (element.score).forEach(ele => currtotal+=ele);
+            let maxtotal = 0;
+            (element.max).forEach(ele => maxtotal+=ele);
+            console.log(currtotal,maxtotal);
+            await scores_db.updateOne({user : element.user},{currtotal : currtotal , maxtotal : maxtotal});
+        })
     }
-
-    async get_reg_no(req,res){
-        const authHeader = req.header('Authorization');
-        if (!authHeader) {
-            res.status(401).json({ message: 'Access denied. Token missing.' });
-            return 0;
-        }
-        const token = authHeader.replace('Bearer ', '');
-        try{   
-            const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
-            return decoded.regNo;
-        } catch{
-            res.status(401).json({ message: 'Invalid token.' });
-            return 0;
-        }
-    }
-
 }
+
 module.exports = submission;
