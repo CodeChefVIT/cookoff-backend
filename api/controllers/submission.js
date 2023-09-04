@@ -4,6 +4,7 @@ const testdb = require("../models/testCasesModel.js");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
+const { get } = require("../routes/submission.js");
 
 
 class submission{
@@ -70,7 +71,7 @@ class submission{
                 memory_limit : current.memory,
             })
         }
-
+        console.log(tests);
         const tokens = await axios.post("http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
             {
                 "submissions" : tests
@@ -86,10 +87,13 @@ class submission{
             str.push(element.token);
         });
         const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+
-        "&base64_encoded=false&fields=status_id,stdout,stderr,expected_output";
+        "&base64_encoded=false&fields=status_id,stdout,stderr,expected_output,stdin";
         console.log(url);
         let completion = false;
         let data_sent_back = {
+            input : "",
+            expectedOutput : "",
+            outputReceived :"",
             error : "",
             Sub_db : "",
             Score : ""
@@ -110,21 +114,33 @@ class submission{
                     case 4:
                         if(element.expected_output+"\n" == element.stdout) score +=1;
                         else {
-                            data_sent_back.error = "Expected output :- "+element.expected_output+ "\n but received " + element.stdout;
+                            data_sent_back.error = element.stderr;
+                            data_sent_back.input = element.stdin;
+                            data_sent_back.expectedOutput = element.expected_output;
+                            data_sent_back.outputReceived = element.stdout;
                             completion = true;
                         }
                         break;
                     case 5:
-                        data_sent_back.error = "Time limit exceeded";
+                        data_sent_back.error = element.stderr;
+                        data_sent_back.input = element.stdin;
+                        data_sent_back.expectedOutput = element.expected_output;
+                        data_sent_back.outputReceived = element.stdout;
                         break;
                     case 6:
-                        data_sent_back.error = "Complilation error :-" + element.stderr;
+                        data_sent_back.error = element.stderr;
+                        data_sent_back.input = element.stdin;
+                        data_sent_back.expectedOutput = element.expected_output;
+                        data_sent_back.outputReceived = element.stdout;
                         break;
                     case 13:
                         data_sent_back.error = "Server side error please contact the nearest admin";
                         break;
                     default:
-                        data_sent_back.error = "Runtime error was faced :- " + element.stderr;
+                        data_sent_back.error = element.stderr;
+                        data_sent_back.input = element.stdin;
+                        data_sent_back.expectedOutput = element.expected_output;
+                        data_sent_back.outputReceived = element.stdout;
                         break;
                 }
             })
@@ -183,6 +199,13 @@ class submission{
             res.status(401).json({ message: 'Invalid token.' });
             return 0;
         }
+    }
+
+    async get_score(req,res){
+        const {regno} = req.params;
+        console.log(regno);
+        const record = await User.findOne({regNo : regno},"name regNo score");
+        res.status(200).json(record);
     }
 
 }

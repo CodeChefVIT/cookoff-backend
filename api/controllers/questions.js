@@ -102,7 +102,7 @@ async function createQuestion(req, res) {
       name: req.body.name,
       id: req.body.id,
       inputFormat: req.body.inputFormat,
-      outputformat: req.body.outputFormat,
+      outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
       sampleTestInput: req.body.sampleTestInput,
       sampleTestOutput: req.body.sampleTestOutput,
