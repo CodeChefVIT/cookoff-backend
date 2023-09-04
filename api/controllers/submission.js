@@ -71,7 +71,6 @@ class submission{
                 memory_limit : current.memory,
             })
         }
-        console.log(tests);
         const tokens = await axios.post("http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
             {
                 "submissions" : tests
@@ -156,7 +155,6 @@ class submission{
 
     async leaderboard(req,res){
         const all = await User.find({},'regNo score').sort({score:-1,updatedAt:1});
-        console.log(all);
         res.status(200).json(all);
     }
 
@@ -203,7 +201,6 @@ class submission{
 
     async get_score(req,res){
         const {regno} = req.params;
-        console.log(regno);
         const record = await User.findOne({regNo : regno},"name regNo score");
         res.status(200).json(record);
     }
