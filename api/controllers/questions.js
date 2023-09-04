@@ -4,9 +4,8 @@ const jwt = require("jsonwebtoken");
 async function getQuestionByID(req, res) {
   try {
     var questions;
-    const authHeader = req.header('Authorization');
-    const token = authHeader.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    const decoded=req.user
+    
     if(decoded.userRole=='admin'){
         questions = await ques.findById(req.body.id).populate("testCases");
      }
@@ -32,9 +31,7 @@ async function getQuestionByID(req, res) {
 async function getAll(req, res) {
   try {
     var questionsAll;
-    const authHeader = req.header('Authorization');
-    const token = authHeader.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    const decoded=req.user;
     if(decoded.userRole=='admin'){
       questionsAll = await ques.find().populate("testCases");
     }
@@ -60,9 +57,7 @@ async function getAll(req, res) {
 async function getByRound(req, res) {
   try {
     var questionByRound;
-    const authHeader = req.header('Authorization');
-    const token = authHeader.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET)
+    const decoded=req.user;
     if(decoded.userRole=='admin'){
       questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
     }
