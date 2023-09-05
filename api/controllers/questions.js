@@ -85,12 +85,15 @@ async function getByRound(req, res) {
 async function deleteQuestion(req,res){
   try{
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
+<<<<<<< HEAD
     console.log(req.body.id)
 
     const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`).exec();
 
     TestCaseModel.deleteMany(testCases);
 
+=======
+>>>>>>> ef7378f59c6d585adc405c4be1bc8a1b2cf8ca77
     if (!deletedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
@@ -127,25 +130,21 @@ async function updateQuestion(req,res){
 };
 
 async function createQuestion(req, res) {
-  //admin only
   try {
     const Ques = await ques.create({
       name: req.body.name,
-      id: req.body.id,
       inputFormat: req.body.inputFormat,
       outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
+      round: req.body.round,
       sampleTestInput: req.body.sampleTestInput,
       sampleTestOutput: req.body.sampleTestOutput,
-      timeLimit: req.body.timeLimit,
-      sourceLimit: req.body.sourceLimit,
-      round: req.body.round,
+      explanation: req.body.explanation,
       objective: req.body.objective,
       testCases: [],
     });
     await Ques.save();
 
-    console.log(Ques);
     return res.status(201).json(Ques);
   } catch (error) {
     return res.status(500).json({
