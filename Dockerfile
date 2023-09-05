@@ -15,5 +15,8 @@ COPY . .
 # Expose the port that the app will run on
 EXPOSE 8080
 
-# Command to run the app
-CMD ["node", "index.js"]
+# Install PM2 globally
+RUN npm install pm2 -g
+
+# Use PM2 as the command to run the app, with automatic restart on failure
+CMD ["pm2-runtime", "index.js"]
