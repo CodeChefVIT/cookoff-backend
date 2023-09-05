@@ -1,5 +1,6 @@
 const ques = require("../models/ques");
 const jwt = require("jsonwebtoken");
+const TestCaseModel = require("../models/testCasesModel");
 
 async function getQuestionByID(req, res) {
   try {
@@ -85,11 +86,17 @@ async function deleteQuestion(req,res){
   try{
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
     console.log(req.body.id)
+
+    const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`).exec();
+
+    TestCaseModel.deleteMany(testCases);
+
     if (!deletedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
     return res.status(201).json({
-      message: "Successfully Deleted"
+      message: "Successfully Deleted",
+      testCases: testCases
     })
   }
   catch (error){

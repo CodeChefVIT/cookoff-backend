@@ -38,7 +38,7 @@ const deleteTestCase = async (req, res) => {
     return res.status(201).json({ message: "Succesfully deleted test case" });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: "Failed to delete test case"
     });
   }
 };
@@ -46,15 +46,21 @@ const deleteTestCase = async (req, res) => {
 const updateTestCase = async (req, res) => {
   try {
     const testCase = await TestCaseModel.findById(req.params.id);
-    const { expectedOutput, input, number, hidden, time, memory, explanation, question } = req.body;
+
+    if (!testCase) {
+      return res.status(500).json({message: "Test case does not exist"});
+    }
+
+    const { expectedOutput, input, number, hidden, time, memory, group, question } = req.body;
+    console.log(hidden, expectedOutput);
 
     testCase.expectedOutput = expectedOutput ? expectedOutput : testCase.expectedOutput;
     testCase.input = input ? input : testCase.input;
-    testCase.hidden = hidden ? hidden : testCase.hidden;
+    testCase.hidden = hidden === undefined ? hidden : testCase.hidden;
     testCase.number = number ? number : testCase.number;
     testCase.time = time ? time : testCase.time;
     testCase.memory = memory ? memory : testCase.memory;
-    testCase.explanation = explanation ? explanation : testCase.explanation;
+    testCase.group = group ? group : testCase.group;
 
     if (question) {
       const oldQuestion = await QuestionModel.findById(testCase.question);
@@ -75,7 +81,7 @@ const updateTestCase = async (req, res) => {
 
     return res.status(201).json({ testCase });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "Failed to update test cases" });
   }
 }
 
