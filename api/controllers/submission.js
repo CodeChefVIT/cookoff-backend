@@ -107,10 +107,10 @@ class submission{
                 return;
             }
             tests.push({
-                source_code : Buffer.from(code).toString('base64'),
+                source_code : Buffer.from(code,'binary').toString('base64'),
                 language_id : language_id,
-                stdin : Buffer.from(current.input).toString('base64'),
-                expected_output : Buffer.from(current.expectedOutput).toString('base64'),
+                stdin : Buffer.from(current.input,'binary').toString('base64'),
+                expected_output : Buffer.from(current.expectedOutput,'binary').toString('base64'),
                 cpu_time_limit : (current.time * multipler<15)?(current.time*multipler):15,
                 memory_limit : (current.memory * multipler),
                 redirect_stderr_to_stdout : true
@@ -182,6 +182,7 @@ class submission{
                         break;
                     case 5:
                         failed.push(i);
+                        if(data_sent_back.input != ""){continue;}
                         data_sent_back.error = "Time Limit Exceeded";
                         data_sent_back.input = element.stdin;
                         data_sent_back.expectedOutput = element.expected_output;
