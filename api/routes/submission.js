@@ -13,8 +13,8 @@ router.get("/leaderboard",verifyAdminToken,(req,res) => {
   submit.leaderboard(req,res);
 })
 
-router.get("/score/:user",verifyAdminToken,(req,res)=>{
-  submit.findscore(req,res);
+router.get("/score/:regno",verifyAdminToken,(req,res)=>{
+  submit.get_score(req,res);
 })
 
 module.exports = router;
