@@ -4,7 +4,7 @@ const testdb = require("../models/testCasesModel.js");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
-const { get } = require("../routes/submission.js");
+const ObjectId = require('mongoose').Types.ObjectId
 
 
 class submission{
@@ -31,20 +31,26 @@ class submission{
         const {question_id,code,language_id} = req.body;
         if(!question_id){
             res.status(400).json({
-                message : "Question ID was not given"
+                Error : "Question ID was not given"
             })
             return;
         }
         if(!code){
             res.status(400).json({
-                message : "Code was not given"
+                Error : "Code was not given"
             })
             return;
         }
         if(!language_id){
             res.status(400).json({
-                message : "Language ID not given"
+                Error : "Language ID not given"
             })
+            return;
+        }
+        if(!ObjectId.isValid(question_id)){
+            res.status(400).json({
+                Error : "Question ID is not an ObjectID"
+            });
             return;
         }
         const check = await submission_db.findOne({regNo : reg_no,question_id : question_id},"code score");
@@ -57,20 +63,73 @@ class submission{
             return;
         }
         
-        const testcase = await questiondb.findById(question_id,'testCases');
+        let multipler;
+        switch(parseInt(language_id)){
+            case 50://for C
+            case 54://for C++
+            case 63://for Node JS/Javascript
+            case 60://for Go 
+            case 73://for Rust
+                multipler = 1;
+                break;
+            case 51://for C#
+            case 62://for java
+                multipler = 2;
+                break;
+            case 68://for PHP
+                multipler = 3;
+                break;
+            case 71://for Python
+                multipler = 5;
+                break;
+            default:
+                res.status(400).json({
+                    Error : "Invalid language ID"
+                })
+                return;
+        }
+        const testcase = await questiondb.findById(question_id,'testCases')
+        if(testcase == null){
+            res.status(400).json({
+                Error : "Question ID doesn't exist"
+            })
+            return;
+        }
         const testcases = testcase.testCases;
         let tests = [];
+        let grp = {};
         for(let i in testcases){
             const current = await testdb.findById(testcases[i]);
+            if(current == null){
+                res.status(400).json({
+                    Error : "Testcase ID "+testcases[i]+" doesn't exist"
+                })
+                return;
+            }
             tests.push({
-                source_code : btoa(code),
+                source_code : Buffer.from(code).toString('base64'),
                 language_id : language_id,
-                stdin : btoa(current.input),
-                expected_output : btoa(current.expectedOutput),
-                cpu_time_limit : current.time,
-                memory_limit : current.memory,
+                stdin : Buffer.from(current.input).toString('base64'),
+                expected_output : Buffer.from(current.expectedOutput).toString('base64'),
+                cpu_time_limit : (current.time * multipler<15)?(current.time*multipler):15,
+                memory_limit : (current.memory * multipler),
+                redirect_stderr_to_stdout : true
             })
+            const group = current.group;
+            if(group in grp){
+                let data = grp[group];
+                data.push(parseInt(i));
+                console.log(data);
+                grp[group] = data; 
+            }
+            else{
+                grp[group] = [parseInt(i)];
+            }
         }
+
+        //console.log(grp)
+
+        //console.log(tests);
         const tokens = await axios.post("http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
             {
                 "submissions" : tests
@@ -86,7 +145,7 @@ class submission{
             str.push(element.token);
         });
         const url = "http://139.59.4.43:2358/submissions/batch?tokens="+str.toString()+
-        "&base64_encoded=false&fields=status_id,stdout,stderr,expected_output,stdin";
+        "&base64_encoded=false&fields=status_id,stdout,expected_output,stdin";
         console.log(url);
         let completion = false;
         let data_sent_back = {
@@ -100,53 +159,68 @@ class submission{
         while(!completion){
             let score = 0;
             completion = true;
+            let failed = [];
             const result = await axios.get(url).then(response => response.data.submissions);
-            result.forEach(element => {
+            for(let i in result){
+                const element = result[i];
                 switch(element.status_id){
                     case 1:
                     case 2:
                         completion = false;
                         break;
                     case 3:
-                        score += 1;
                         break;
                     case 4:
-                        if(element.expected_output+"\n" == element.stdout) score +=1;
+                        if(element.expected_output+"\n" == element.stdout) continue;
                         else {
-                            data_sent_back.error = element.stderr;
+                            failed.push(i);
+                            if(data_sent_back.input != ""){continue;}
                             data_sent_back.input = element.stdin;
                             data_sent_back.expectedOutput = element.expected_output;
                             data_sent_back.outputReceived = element.stdout;
-                            completion = true;
                         }
                         break;
                     case 5:
-                        data_sent_back.error = element.stderr;
+                        failed.push(i);
+                        data_sent_back.error = "Time Limit Exceeded";
                         data_sent_back.input = element.stdin;
                         data_sent_back.expectedOutput = element.expected_output;
                         data_sent_back.outputReceived = element.stdout;
                         break;
                     case 6:
-                        data_sent_back.error = element.stderr;
+                        failed.push(i);
+                        data_sent_back.error = "Complilation error";
                         data_sent_back.input = element.stdin;
                         data_sent_back.expectedOutput = element.expected_output;
                         data_sent_back.outputReceived = element.stdout;
                         break;
                     case 13:
+                        failed.push(i);
                         data_sent_back.error = "Server side error please contact the nearest admin";
                         break;
                     default:
-                        data_sent_back.error = element.stderr;
+                        failed.push(i);
+                        data_sent_back.error = element.status_id;
                         data_sent_back.input = element.stdin;
                         data_sent_back.expectedOutput = element.expected_output;
                         data_sent_back.outputReceived = element.stdout;
                         break;
                 }
-            })
+            }
             if(completion){
-                data_sent_back.Sub_db = await this.create(req,reg_no,score,result.length);
+                //console.log(failed);
+                //console.log(grp);
+                Object.keys(grp).forEach(element =>{
+                    let check = true;
+                    const hell = grp[element];
+                    for(let i in failed){
+                        if(check && hell.includes(parseInt(failed[i]))){check = false;}
+                    }
+                    if(check){score += 1;}
+                });
+                data_sent_back.Sub_db = await this.create(req,reg_no,score,Object.keys(grp).length);
                 await this.create_score(reg_no);
-                data_sent_back.Score = await this.findscore(reg_no,question_id);
+                data_sent_back.Score = score;
                 res.status(201).json(data_sent_back);
                 break;
             }
@@ -156,11 +230,6 @@ class submission{
     async leaderboard(req,res){
         const all = await User.find({},'regNo score').sort({score:-1,updatedAt:1});
         res.status(200).json(all);
-    }
-
-    async findscore(user, question_id){
-        const details = await submission_db.findOne({regNo : user,question_id : question_id});
-        return details.score;
     }
 
     async create_score(user){
