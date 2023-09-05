@@ -1,5 +1,4 @@
 const ques = require("../models/ques");
-const jwt = require("jsonwebtoken");
 
 async function getQuestionByID(req, res) {
   try {
@@ -84,7 +83,6 @@ async function getByRound(req, res) {
 async function deleteQuestion(req,res){
   try{
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
-    console.log(req.body.id)
     if (!deletedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
@@ -120,25 +118,18 @@ async function updateQuestion(req,res){
 };
 
 async function createQuestion(req, res) {
-  //admin only
   try {
     const Ques = await ques.create({
       name: req.body.name,
-      id: req.body.id,
       inputFormat: req.body.inputFormat,
       outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
-      sampleTestInput: req.body.sampleTestInput,
-      sampleTestOutput: req.body.sampleTestOutput,
-      timeLimit: req.body.timeLimit,
-      sourceLimit: req.body.sourceLimit,
       round: req.body.round,
       objective: req.body.objective,
       testCases: [],
     });
     await Ques.save();
 
-    console.log(Ques);
     return res.status(201).json(Ques);
   } catch (error) {
     return res.status(500).json({

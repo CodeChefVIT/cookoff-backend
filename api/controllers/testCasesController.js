@@ -10,7 +10,9 @@ const createTestCase = async (req, res) => {
       hidden: req.body.hidden,
       time: req.body.time,
       memory: req.body.memory,
+      explanation: req.body.explanation,
       question: req.body.question,
+
     });
 
     const question = await QuestionModel.findById(req.body.question);
