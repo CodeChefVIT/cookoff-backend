@@ -130,6 +130,7 @@ class submission{
         //console.log(grp)
 
         //console.log(tests);
+
         const tokens = await axios.post("http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
             {
                 "submissions" : tests
@@ -139,7 +140,15 @@ class submission{
                     'Content-Type' : "application/JSON"
                 }
             }).then(response => response.data)
-
+            .catch((err) => {
+                res.status(400).json({
+                    Error : err.code
+                })
+                return;
+            })
+        if (!tokens){
+            return;
+        }
         let str = [];
         tokens.forEach(element => {
             str.push(element.token);
