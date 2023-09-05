@@ -125,6 +125,9 @@ async function createQuestion(req, res) {
       outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
       round: req.body.round,
+      sampleTestInput: req.body.sampleTestInput,
+      sampleTestOutput: req.body.sampleTestOutput,
+      explanation: req.body.explanation,
       objective: req.body.objective,
       testCases: [],
     });

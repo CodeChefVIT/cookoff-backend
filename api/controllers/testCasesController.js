@@ -10,7 +10,7 @@ const createTestCase = async (req, res) => {
       hidden: req.body.hidden,
       time: req.body.time,
       memory: req.body.memory,
-      explanation: req.body.explanation,
+      group: req.body.group,
       question: req.body.question,
 
     });
