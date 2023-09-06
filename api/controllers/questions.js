@@ -1,9 +1,18 @@
 const ques = require("../models/ques");
+const jwt = require("jsonwebtoken");
+const TestCaseModel = require("../models/testCasesModel");
 
 async function getQuestionByID(req, res) {
   try {
-    const questions = await ques.findById(req.body.id).populate("testCases");
-    console.log(questions);
+    var questions;
+    const decoded=req.user
+    
+    if(decoded.userRole=='admin'){
+        questions = await ques.findById(req.body.id).populate("testCases");
+     }
+    else{ 
+      questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
+    }
     if(questions.length==0){
       return res.status(404).json({
         message: "No questions found",
@@ -12,6 +21,7 @@ async function getQuestionByID(req, res) {
     else{
       return res.status(201).json(questions);
     }
+    
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -21,17 +31,24 @@ async function getQuestionByID(req, res) {
 
 async function getAll(req, res) {
   try {
-    const questionsAll = await ques.find().populate("testCases");
-
+    var questionsAll;
+    const decoded=req.user;
+    if(decoded.userRole=='admin'){
+      questionsAll = await ques.find().populate("testCases");
+    }
+    else{
+    questionsAll = await ques.find().populate({path: 'testCases', match: {hidden: false}});
+    }
     if(questionsAll.length==0){
-      return res.status(404).json({
+        return res.status(404).json({
         message: "No questions found",
       })
     }
     else{
-      return res.status(201).json(questionsAll);
-    }
-} catch (error) {
+       return res.status(201).json(questionsAll);
+   }
+}
+ catch (error) {
     return res.status(500).json({
       message: error.message,
     });
@@ -40,8 +57,16 @@ async function getAll(req, res) {
 
 async function getByRound(req, res) {
   try {
-    const questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
-    console.log(questionByRound);
+    var questionByRound;
+    const decoded=req.user;
+    if(decoded.userRole=='admin'){
+      questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
+    }
+    else{
+      questionByRound = await ques.where("round").equals(req.body.round).populate({path: 'testCases', match: {hidden: false}});
+    
+    }
+    
     if(questionByRound.length==0){
       return res.status(404).json({
         message: "No questions found",
@@ -60,12 +85,21 @@ async function getByRound(req, res) {
 async function deleteQuestion(req,res){
   try{
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
+<<<<<<< HEAD
     console.log(req.body.id)
+
+    const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`).exec();
+
+    TestCaseModel.deleteMany(testCases);
+
+=======
+>>>>>>> ef7378f59c6d585adc405c4be1bc8a1b2cf8ca77
     if (!deletedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
     return res.status(201).json({
-      message: "Successfully Deleted"
+      message: "Successfully Deleted",
+      testCases: testCases
     })
   }
   catch (error){
@@ -96,25 +130,21 @@ async function updateQuestion(req,res){
 };
 
 async function createQuestion(req, res) {
-  //admin only
   try {
     const Ques = await ques.create({
       name: req.body.name,
-      id: req.body.id,
       inputFormat: req.body.inputFormat,
-      outputformat: req.body.outputFormat,
+      outputFormat: req.body.outputFormat,
       constraints: req.body.constraints,
+      round: req.body.round,
       sampleTestInput: req.body.sampleTestInput,
       sampleTestOutput: req.body.sampleTestOutput,
-      timeLimit: req.body.timeLimit,
-      sourceLimit: req.body.sourceLimit,
-      round: req.body.round,
+      explanation: req.body.explanation,
       objective: req.body.objective,
       testCases: [],
     });
     await Ques.save();
 
-    console.log(Ques);
     return res.status(201).json(Ques);
   } catch (error) {
     return res.status(500).json({

@@ -10,7 +10,9 @@ const createTestCase = async (req, res) => {
       hidden: req.body.hidden,
       time: req.body.time,
       memory: req.body.memory,
+      group: req.body.group,
       question: req.body.question,
+
     });
 
     const question = await QuestionModel.findById(req.body.question);
@@ -19,10 +21,10 @@ const createTestCase = async (req, res) => {
     }
     await question.save();
 
-    return res.status(201).json({ message: "Inserted successfully" });
+    return res.status(201).json(testCase);
   } catch (error) {
     return res.status(500).json({
-      message: "Failed to insert test case",
+      message: "Something went wrong",
     });
   }
 };
@@ -38,7 +40,7 @@ const deleteTestCase = async (req, res) => {
     return res.status(201).json({ message: "Succesfully deleted test case" });
   } catch (error) {
     return res.status(500).json({
-      message: "Failed to delete test case",
+      message: "Failed to delete test case"
     });
   }
 };
@@ -46,15 +48,21 @@ const deleteTestCase = async (req, res) => {
 const updateTestCase = async (req, res) => {
   try {
     const testCase = await TestCaseModel.findById(req.params.id);
-    const { expectedOutput, input, number, hidden, time, memory, explanation, question } = req.body;
+
+    if (!testCase) {
+      return res.status(500).json({message: "Test case does not exist"});
+    }
+
+    const { expectedOutput, input, number, hidden, time, memory, group, question } = req.body;
+    console.log(hidden, expectedOutput);
 
     testCase.expectedOutput = expectedOutput ? expectedOutput : testCase.expectedOutput;
     testCase.input = input ? input : testCase.input;
-    testCase.hidden = hidden ? hidden : testCase.hidden;
+    testCase.hidden = hidden === undefined ? hidden : testCase.hidden;
     testCase.number = number ? number : testCase.number;
     testCase.time = time ? time : testCase.time;
     testCase.memory = memory ? memory : testCase.memory;
-    testCase.explanation = explanation ? explanation : testCase.explanation;
+    testCase.group = group ? group : testCase.group;
 
     if (question) {
       const oldQuestion = await QuestionModel.findById(testCase.question);
@@ -75,7 +83,7 @@ const updateTestCase = async (req, res) => {
 
     return res.status(201).json({ testCase });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to update test case" });
+    return res.status(500).json({ message: "Failed to update test cases" });
   }
 }
 

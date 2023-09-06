@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const {verifyAccessToken,verifyAdminToken} = require("../middleware/jwtMiddleware.js");
 
 const {
   createQuestion,
@@ -7,13 +8,15 @@ const {
   getByRound,
   getQuestionByID,
   updateQuestion,
-  deleteQuestion,
+  deleteQuestion
 } = require("../controllers/questions");
 
-router.post("/createQues", createQuestion);
+router.use(verifyAccessToken)
+router.post("/createQues", verifyAdminToken, createQuestion); 
 router.get("/getOne", getAll);  
 router.post("/getId", getQuestionByID);
 router.post("/getRound", getByRound);
-router.put("/updateQuestion/:id", updateQuestion);
-router.delete("/deleteQuestion/:id",deleteQuestion);
+router.put("/updateQuestion/:id", verifyAdminToken, updateQuestion);
+router.delete("/deleteQuestion/:id",verifyAdminToken, deleteQuestion);
+
 module.exports = router;
