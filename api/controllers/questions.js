@@ -5,23 +5,23 @@ const TestCaseModel = require("../models/testCasesModel");
 async function getQuestionByID(req, res) {
   try {
     var questions;
-    const decoded=req.user
-    
-    if(decoded.userRole=='admin'){
-        questions = await ques.findById(req.body.id).populate("testCases");
-     }
-    else{ 
-      questions = await ques.findById(req.body.id).populate({path: 'testCases', match: {hidden: false}});
+    const decoded = req.user
+
+    if (decoded.userRole == 'admin') {
+      questions = await ques.findById(req.body.id).populate("testCases");
     }
-    if(questions.length==0){
+    else {
+      questions = await ques.findById(req.body.id).populate({ path: 'testCases', match: { hidden: false } });
+    }
+    if (questions.length == 0) {
       return res.status(404).json({
         message: "No questions found",
       })
     }
-    else{
+    else {
       return res.status(201).json(questions);
     }
-    
+
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -32,23 +32,23 @@ async function getQuestionByID(req, res) {
 async function getAll(req, res) {
   try {
     var questionsAll;
-    const decoded=req.user;
-    if(decoded.userRole=='admin'){
+    const decoded = req.user;
+    if (decoded.userRole == 'admin') {
       questionsAll = await ques.find().populate("testCases");
     }
-    else{
-    questionsAll = await ques.find().populate({path: 'testCases', match: {hidden: false}});
+    else {
+      questionsAll = await ques.find().populate({ path: 'testCases', match: { hidden: false } });
     }
-    if(questionsAll.length==0){
-        return res.status(404).json({
+    if (questionsAll.length == 0) {
+      return res.status(404).json({
         message: "No questions found",
       })
     }
-    else{
-       return res.status(201).json(questionsAll);
-   }
-}
- catch (error) {
+    else {
+      return res.status(201).json(questionsAll);
+    }
+  }
+  catch (error) {
     return res.status(500).json({
       message: error.message,
     });
@@ -58,21 +58,21 @@ async function getAll(req, res) {
 async function getByRound(req, res) {
   try {
     var questionByRound;
-    const decoded=req.user;
-    if(decoded.userRole=='admin'){
+    const decoded = req.user;
+    if (decoded.userRole == 'admin') {
       questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
     }
-    else{
-      questionByRound = await ques.where("round").equals(req.body.round).populate({path: 'testCases', match: {hidden: false}});
-    
+    else {
+      questionByRound = await ques.where("round").equals(req.body.round).populate({ path: 'testCases', match: { hidden: false } });
+
     }
-    
-    if(questionByRound.length==0){
+
+    if (questionByRound.length == 0) {
       return res.status(404).json({
         message: "No questions found",
       })
     }
-    else{
+    else {
       return res.status(201).json(questionByRound);
     }
   } catch (error) {
@@ -82,18 +82,15 @@ async function getByRound(req, res) {
   }
 }
 
-async function deleteQuestion(req,res){
-  try{
+async function deleteQuestion(req, res) {
+  try {
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
-<<<<<<< HEAD
     console.log(req.body.id)
 
     const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`).exec();
 
     TestCaseModel.deleteMany(testCases);
 
-=======
->>>>>>> ef7378f59c6d585adc405c4be1bc8a1b2cf8ca77
     if (!deletedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
@@ -102,21 +99,21 @@ async function deleteQuestion(req,res){
       testCases: testCases
     })
   }
-  catch (error){
+  catch (error) {
     return res.status(500).json({
       message: error.message,
     });
   }
 }
 
-async function updateQuestion(req,res){
+async function updateQuestion(req, res) {
   try {
     const updatedData = await ques.findByIdAndUpdate(
       req.params.id,
       {
-        $set: req.body, 
+        $set: req.body,
       },
-      { new: true } 
+      { new: true }
     );
 
     if (!updatedData) {
