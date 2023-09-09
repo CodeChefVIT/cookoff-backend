@@ -11,7 +11,7 @@ mongoose
 
 const testQuestions = [
   {
-    name: "Smart Phone",
+    name: "Smart Phone6",
     objective: `You are developing a smartphone app. You have a list of potential customers for your app. Each customer has a budget and will buy the app at your declared price if and only if the price is less than or equal to the customer's budget.
 
 
@@ -85,8 +85,7 @@ const addData = async () => {
   let questions = JSON.parse(JSON.stringify(testQuestions));
   questions.forEach((question) => (question.testCases = []));
 
-  await QuestionModel.deleteMany({});
-  await TestCaseModel.deleteMany({});
+
   const insertedQuestions = await QuestionModel.insertMany(questions);
 
   for (let i = 0; i < insertedQuestions.length; i++) {

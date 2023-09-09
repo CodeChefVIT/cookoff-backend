@@ -242,47 +242,46 @@ class submission{
         res.status(200).json(all);
     }
 
-    async create_score(user){
-        const ele = await submission_db.aggregate([
-            {
-                $match : {regNo : user}
-            },
-            {
-                $group : {
-                    _id : "$regNo",
-                    total : {
-                        $sum : "$score"
-                    }
-                }
-            }
-        ])
-        const score = ele[0].total;
-        return User.updateOne({regNo : user},{score : score})
-        .then(() => "Score = " + score)
-        .catch(() => "Error occured while saving scores");
-    }
+  async create_score(user) {
+    const ele = await submission_db.aggregate([
+      {
+        $match: { regNo: user },
+      },
+      {
+        $group: {
+          _id: "$regNo",
+          total: {
+            $sum: "$score",
+          },
+        },
+      },
+    ]);
+    const score = ele[0].total;
+    return User.updateOne({ regNo: user }, { score: score })
+      .then(() => "Score = " + score)
+      .catch(() => "Error occured while saving scores");
+  }
 
-    async get_reg_no(req,res){
-        const authHeader = req.header('Authorization');
-        if (!authHeader) {
-            res.status(401).json({ message: 'Access denied. Token missing.' });
-            return 0;
-        }
-        const token = authHeader.replace('Bearer ', '');
-        try{   
-            const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
-            return decoded.regNo;
-        } catch{
-            res.status(401).json({ message: 'Invalid token.' });
-            return 0;
-        }
+  async get_reg_no(req, res) {
+    const authHeader = req.header("Authorization");
+    if (!authHeader) {
+      res.status(401).json({ message: "Access denied. Token missing." });
+      return 0;
     }
-
-    async get_score(req,res){
-        const {regno} = req.params;
-        const record = await User.findOne({regNo : regno},"name regNo score");
-        res.status(200).json(record);
+    const token = authHeader.replace("Bearer ", "");
+    try {
+      const decoded = jwt.verify(token, process.env.ACCESS_KEY_SECRET);
+      return decoded.regNo;
+    } catch {
+      res.status(401).json({ message: "Invalid token." });
+      return 0;
     }
+  }
 
+  async get_score(req, res) {
+    const { regno } = req.params;
+    const record = await User.findOne({ regNo: regno }, "name regNo score");
+    res.status(200).json(record);
+  }
 }
 module.exports = submission;
