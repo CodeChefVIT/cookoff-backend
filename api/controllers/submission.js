@@ -143,13 +143,13 @@ class submission {
       }
     }
 
-    //console.log(grp)
+    console.log(grp)
 
-    //console.log(tests);
+    console.log(tests);
 
     const tokens = await axios
       .post(
-        "http://139.59.4.43/submissions/batch?base64_encoded=true",
+        "http://139.59.4.43:2358/submissions/batch?base64_encoded=true",
         {
           submissions: tests,
         },
@@ -159,7 +159,7 @@ class submission {
           },
         }
       )
-      .then((response) => response.data)
+      .then((response) => {console.log("post method worked");return response.data;})
       .catch((err) => {
         res.status(400).json({
           Error: err.code,
@@ -174,7 +174,7 @@ class submission {
       str.push(element.token);
     });
     const url =
-      "http://139.59.4.43/submissions/batch?tokens=" +
+      "http://139.59.4.43:2358/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=false&fields=status_id,stdout,expected_output,stdin";
     console.log(url);
