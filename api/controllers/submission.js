@@ -143,9 +143,9 @@ class submission {
       }
     }
 
-    console.log(grp)
+    //console.log(grp)
 
-    console.log(tests);
+    //console.log(tests);
 
     const tokens = await axios
       .post(
