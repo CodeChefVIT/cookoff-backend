@@ -159,7 +159,7 @@ class submission {
           },
         }
       )
-      .then((response) => {console.log("post method worked");return response.data;})
+      .then((response) =>response.data)
       .catch((err) => {
         res.status(400).json({
           Error: err.code,
