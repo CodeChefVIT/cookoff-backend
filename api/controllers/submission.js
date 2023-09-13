@@ -5,20 +5,23 @@ const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const ObjectId = require("mongoose").Types.ObjectId;
+require("dotenv").config();
+const Judge0 = process.env.JUDGE_URI;
 
 class submission {
-  async create(req, user, score, max) {
+  async create(req, user, score, max, result) {
+    //console.log(result);
     const { language_id, code, question_id } = req.body;
     const check = await submission_db.findOne({
       regNo: user,
       question_id: question_id,
     });
-    let error = "";
     if (check) {
       return await submission_db
         .updateOne(
           { regNo: user, question_id: question_id },
-          { code: code, language_id: language_id, score: score, max_score: max }
+          { code: code, language_id: language_id, score: score, max_score: max ,
+            lastResults : result}
         )
         .then(async () => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -31,6 +34,7 @@ class submission {
           question_id: question_id,
           score: score,
           max_score: max,
+          lastResults : result
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -67,12 +71,13 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score"
+      "code score lastResults"
     );
     if (check && check.code == code) {
       await this.create_score(reg_no);
       res.status(201).json({
-        message: "No changes in source code",
+        error: check.lastResults,
+        Sub_db: "No changes in source code",
         Score: check.score,
       });
       return;
@@ -136,7 +141,7 @@ class submission {
       if (group in grp) {
         let data = grp[group];
         data.push(parseInt(i));
-        console.log(data);
+        //console.log(data);
         grp[group] = data;
       } else {
         grp[group] = [parseInt(i)];
@@ -149,7 +154,7 @@ class submission {
 
     const tokens = await axios
       .post(
-        "http://139.59.4.43/submissions/batch?base64_encoded=true",
+        Judge0+"submissions/batch?base64_encoded=true",
         {
           submissions: tests,
         },
@@ -159,7 +164,7 @@ class submission {
           },
         }
       )
-      .then((response) => response.data)
+      .then((response) =>response.data)
       .catch((err) => {
         res.status(400).json({
           Error: err.code,
@@ -174,20 +179,18 @@ class submission {
       str.push(element.token);
     });
     const url =
-      "http://139.59.4.43/submissions/batch?tokens=" +
+      Judge0+"/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=false&fields=status_id,stdout,expected_output,stdin";
     console.log(url);
     let completion = false;
     let data_sent_back = {
-      input: "",
-      expectedOutput: "",
-      outputReceived: "",
-      error: "",
+      error: [false,false,false], //false means it passed that grp
+      //[complilation error/runtime,time limit exceeded, O/P failed]
       Sub_db: "",
       Score: "",
     };
-    while (!completion) {
+    while (!completion && !data_sent_back.error[0]) {
       let score = 0;
       completion = true;
       let failed = [];
@@ -206,43 +209,29 @@ class submission {
           case 4:
             if (element.expected_output + "\n" == element.stdout) continue;
             else {
+              data_sent_back.error[2] = true; 
               failed.push(i);
-              if (data_sent_back.input != "") {
-                continue;
-              }
-              data_sent_back.input = element.stdin;
-              data_sent_back.expectedOutput = element.expected_output;
-              data_sent_back.outputReceived = element.stdout;
             }
             break;
           case 5:
             failed.push(i);
-            if (data_sent_back.input != "") {
-              continue;
-            }
-            data_sent_back.error = "Time Limit Exceeded";
-            data_sent_back.input = element.stdin;
-            data_sent_back.expectedOutput = element.expected_output;
-            data_sent_back.outputReceived = element.stdout;
+            data_sent_back.error[1] = true;
             break;
           case 6:
             failed.push(i);
-            data_sent_back.error = "Complilation error";
-            data_sent_back.input = element.stdin;
-            data_sent_back.expectedOutput = element.expected_output;
-            data_sent_back.outputReceived = element.stdout;
+            data_sent_back.error[0] = true;
             break;
           case 13:
             failed.push(i);
-            data_sent_back.error =
-              "Server side error please contact the nearest admin";
-            break;
+            /*data_sent_back.error =
+              "Server side error please contact the nearest admin";*/
+            res.status().json({
+              Error : "Judge0 side error"
+            });
+            return;
           default:
             failed.push(i);
-            data_sent_back.error = element.status_id;
-            data_sent_back.input = element.stdin;
-            data_sent_back.expectedOutput = element.expected_output;
-            data_sent_back.outputReceived = element.stdout;
+            data_sent_back.error[0] = true;
             break;
         }
       }
@@ -265,7 +254,8 @@ class submission {
           req,
           reg_no,
           score,
-          Object.keys(grp).length
+          Object.keys(grp).length,
+          data_sent_back.error
         );
         await this.create_score(reg_no);
         data_sent_back.Score = score;
