@@ -185,7 +185,7 @@ class submission {
     console.log(url);
     let completion = false;
     let data_sent_back = {
-      error: [false,false,false], //false means it passed that grp
+      error: [false,false,false,false], //false means it passed that grp
       //[complilation error/runtime,time limit exceeded, O/P failed]
       Sub_db: "",
       Score: "",
@@ -209,13 +209,13 @@ class submission {
           case 4:
             if (element.expected_output + "\n" == element.stdout) continue;
             else {
-              data_sent_back.error[2] = true; 
+              data_sent_back.error[3] = true; 
               failed.push(i);
             }
             break;
           case 5:
             failed.push(i);
-            data_sent_back.error[1] = true;
+            data_sent_back.error[2] = true;
             break;
           case 6:
             failed.push(i);
@@ -238,6 +238,18 @@ class submission {
       if (completion) {
         //console.log(failed);
         //console.log(grp);
+        console.log(failed.length,tests.length);
+        if(failed.length != tests.length && data_sent_back.error[0]){
+          console.log("it worked ??");
+          data_sent_back.error[0] = false;
+          data_sent_back.error[1] = true;
+        }
+        if(data_sent_back.error[0]){
+          data_sent_back.Sub_db = "Sub DB not messed with";
+          data_sent_back.Score = null;
+          res.status(201).json(data_sent_back);
+          return;
+        }
         Object.keys(grp).forEach((element) => {
           let check = true;
           const hell = grp[element];
