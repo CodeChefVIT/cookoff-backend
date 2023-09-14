@@ -238,9 +238,7 @@ class submission {
       if (completion) {
         //console.log(failed);
         //console.log(grp);
-        console.log(failed.length,tests.length);
         if(failed.length != tests.length && data_sent_back.error[0]){
-          console.log("it worked ??");
           data_sent_back.error[0] = false;
           data_sent_back.error[1] = true;
         }
