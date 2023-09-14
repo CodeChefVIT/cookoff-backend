@@ -12,7 +12,6 @@ const createTestCase = async (req, res) => {
       memory: req.body.memory,
       group: req.body.group,
       question: req.body.question,
-
     });
 
     const question = await QuestionModel.findById(req.body.question);
@@ -22,7 +21,7 @@ const createTestCase = async (req, res) => {
     await question.save();
 
     return res.status(201).json(testCase);
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
       message: "Something went wrong",
     });
@@ -38,9 +37,9 @@ const deleteTestCase = async (req, res) => {
       await question.save();
     }
     return res.status(201).json({ message: "Succesfully deleted test case" });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({
-      message: "Failed to delete test case"
+      message: "Failed to delete test case",
     });
   }
 };
@@ -50,13 +49,24 @@ const updateTestCase = async (req, res) => {
     const testCase = await TestCaseModel.findById(req.params.id);
 
     if (!testCase) {
-      return res.status(500).json({message: "Test case does not exist"});
+      return res.status(500).json({ message: "Test case does not exist" });
     }
 
-    const { expectedOutput, input, number, hidden, time, memory, group, question } = req.body;
+    const {
+      expectedOutput,
+      input,
+      number,
+      hidden,
+      time,
+      memory,
+      group,
+      question,
+    } = req.body;
     console.log(hidden, expectedOutput);
 
-    testCase.expectedOutput = expectedOutput ? expectedOutput : testCase.expectedOutput;
+    testCase.expectedOutput = expectedOutput
+      ? expectedOutput
+      : testCase.expectedOutput;
     testCase.input = input ? input : testCase.input;
     testCase.hidden = hidden === undefined ? hidden : testCase.hidden;
     testCase.number = number ? number : testCase.number;
@@ -82,13 +92,13 @@ const updateTestCase = async (req, res) => {
     await testCase.save();
 
     return res.status(201).json({ testCase });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ message: "Failed to update test cases" });
   }
-}
+};
 
 module.exports = {
   createTestCase,
   deleteTestCase,
-  updateTestCase
+  updateTestCase,
 };

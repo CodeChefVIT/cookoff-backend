@@ -7,8 +7,8 @@ const {
 const { verifyAdminToken } = require("../middleware/jwtMiddleware");
 const Router = express.Router;
 
-let router = Router();
-router.use(verifyAdminToken)
+const router = Router();
+router.use(verifyAdminToken);
 router.post("/create", createTestCase);
 router.delete("/delete/:id", deleteTestCase);
 router.patch("/update/:id", updateTestCase);
