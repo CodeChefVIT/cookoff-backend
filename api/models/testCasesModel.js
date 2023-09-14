@@ -7,7 +7,7 @@ const TestCaseSchema = new mongoose.Schema({
   hidden: { type: Boolean, default: false },
   time: { type: Number, default: 0 },
   memory: { type: Number, default: 0 },
-  group: { type: String },
+  group: { type: Number },
   question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
 });
 
