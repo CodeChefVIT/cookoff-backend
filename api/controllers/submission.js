@@ -190,7 +190,7 @@ class submission {
       Sub_db: "",
       Score: "",
     };
-    while (!completion && !data_sent_back.error[0]) {
+    while (!completion) {
       let score = 0;
       completion = true;
       let failed = [];
