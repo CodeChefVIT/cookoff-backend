@@ -138,10 +138,9 @@ class submission {
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
           "base64",
         ),
-        cpu_time_limit: current.time * multipler < 15
-          ? current.time * multipler
-          : 15,
-        redirect_stderr_to_stdout: true,
+        cpu_time_limit:
+          current.time * multipler < 15 ? current.time * multipler : 15,
+        //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
       if (group in grp) {
@@ -186,7 +185,7 @@ class submission {
     });
     const url = Judge0 + "/submissions/batch?tokens=" +
       str.toString() +
-      "&base64_encoded=false&fields=status_id,stdout,expected_output,stdin";
+      "&base64_encoded=true&fields=status_id,stderr,compile_output";
     console.log(url);
     let completion = false;
     let data_sent_back = {
@@ -248,9 +247,17 @@ class submission {
           data_sent_back.error[1] = true;
         }
         if(data_sent_back.error[0]){
-          data_sent_back.Sub_db = "Sub DB not messed with";
-          data_sent_back.Score = null;
-          res.status(201).json(data_sent_back);
+          const msg = (result[0].compile_output != null)?
+          Buffer.from(result[0].compile_output, "base64").toString(
+            "utf-8"
+          ):
+          Buffer.from(result[0].stderr,"base64").toString(
+            "utf-8"
+          );
+          res.status(201).json({
+            error : data_sent_back.error,
+            message : msg
+          });
           return;
         }
         Object.keys(grp).forEach((element) => {

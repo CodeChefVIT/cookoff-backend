@@ -32,7 +32,7 @@ app.use(cors());
 
 // Setting up routes
 app.get("/ping", (_, res) => {
-  res.status(200).json({ msg: "ping", hostname: os.hostname() });
+  res.status(200).json({ msg: "pong", hostname: os.hostname() });
 });
 
 app.use("/testcases/", TestCaseRouter);
