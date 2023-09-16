@@ -154,7 +154,7 @@ class submission {
 
     const tokens = await axios
       .post(
-        Judge0+"submissions/batch?base64_encoded=true",
+        Judge0+"/submissions/batch?base64_encoded=true",
         {
           submissions: tests,
         },
