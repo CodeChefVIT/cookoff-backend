@@ -20,8 +20,13 @@ class submission {
       return await submission_db
         .updateOne(
           { regNo: user, question_id: question_id },
-          { code: code, language_id: language_id, score: score, max_score: max ,
-            lastResults : result}
+          {
+            code: code,
+            language_id: language_id,
+            score: score,
+            max_score: max,
+            lastResults: result,
+          },
         )
         .then(async () => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -34,7 +39,7 @@ class submission {
           question_id: question_id,
           score: score,
           max_score: max,
-          lastResults : result
+          lastResults: result,
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -71,7 +76,7 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults"
+      "code score lastResults",
     );
     if (check && check.code == code) {
       await this.create_score(reg_no);
@@ -131,7 +136,7 @@ class submission {
         language_id: language_id,
         stdin: Buffer.from(current.input, "binary").toString("base64"),
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
-          "base64"
+          "base64",
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
@@ -154,7 +159,7 @@ class submission {
 
     const tokens = await axios
       .post(
-        Judge0+"submissions/batch?base64_encoded=true",
+        Judge0 + "submissions/batch?base64_encoded=true",
         {
           submissions: tests,
         },
@@ -162,9 +167,9 @@ class submission {
           header: {
             "Content-Type": "application/JSON",
           },
-        }
+        },
       )
-      .then((response) =>response.data)
+      .then((response) => response.data)
       .catch((err) => {
         res.status(400).json({
           Error: err.code,
@@ -178,8 +183,7 @@ class submission {
     tokens.forEach((element) => {
       str.push(element.token);
     });
-    const url =
-      Judge0+"/submissions/batch?tokens=" +
+    const url = Judge0 + "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output";
     console.log(url);
@@ -226,7 +230,7 @@ class submission {
             /*data_sent_back.error =
               "Server side error please contact the nearest admin";*/
             res.status().json({
-              Error : "Judge0 side error"
+              Error: "Judge0 side error",
             });
             return;
           default:
@@ -273,7 +277,7 @@ class submission {
           reg_no,
           score,
           Object.keys(grp).length,
-          data_sent_back.error
+          data_sent_back.error,
         );
         await this.create_score(reg_no);
         data_sent_back.Score = score;

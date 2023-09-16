@@ -5,23 +5,23 @@ const TestCaseModel = require("../models/testCasesModel");
 async function getQuestionByID(req, res) {
   try {
     var questions;
-    const decoded = req.user
+    const decoded = req.user;
 
-    if (decoded.userRole == 'admin') {
+    if (decoded.userRole == "admin") {
       questions = await ques.findById(req.body.id).populate("testCases");
-    }
-    else {
-      questions = await ques.findById(req.body.id).populate({ path: 'testCases', match: { hidden: false } });
+    } else {
+      questions = await ques.findById(req.body.id).populate({
+        path: "testCases",
+        match: { hidden: false },
+      });
     }
     if (questions.length == 0) {
       return res.status(404).json({
         message: "No questions found",
-      })
-    }
-    else {
+      });
+    } else {
       return res.status(201).json(questions);
     }
-
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -33,22 +33,22 @@ async function getAll(req, res) {
   try {
     var questionsAll;
     const decoded = req.user;
-    if (decoded.userRole == 'admin') {
+    if (decoded.userRole == "admin") {
       questionsAll = await ques.find().populate("testCases");
-    }
-    else {
-      questionsAll = await ques.find().populate({ path: 'testCases', match: { hidden: false } });
+    } else {
+      questionsAll = await ques.find().populate({
+        path: "testCases",
+        match: { hidden: false },
+      });
     }
     if (questionsAll.length == 0) {
       return res.status(404).json({
         message: "No questions found",
-      })
-    }
-    else {
+      });
+    } else {
       return res.status(201).json(questionsAll);
     }
-  }
-  catch (error) {
+  } catch (error) {
     return res.status(500).json({
       message: error.message,
     });
@@ -57,22 +57,20 @@ async function getAll(req, res) {
 
 async function getByRound(req, res) {
   try {
-    var questionByRound;
+    let questionByRound;
     const decoded = req.user;
-    if (decoded.userRole == 'admin') {
-      questionByRound = await ques.where("round").equals(req.body.round).populate("testCases");
+    if (decoded.userRole == "admin") {
+      questionByRound = await ques.where("round").equals(req.body.round)
+        .populate("testCases");
+    } else {
+      questionByRound = await ques.where("round").equals(req.body.round)
+        .populate({ path: "testCases", match: { hidden: false } });
     }
-    else {
-      questionByRound = await ques.where("round").equals(req.body.round).populate({ path: 'testCases', match: { hidden: false } });
-
-    }
-
     if (questionByRound.length == 0) {
       return res.status(404).json({
         message: "No questions found",
-      })
-    }
-    else {
+      });
+    } else {
       return res.status(201).json(questionByRound);
     }
   } catch (error) {
@@ -85,21 +83,21 @@ async function getByRound(req, res) {
 async function deleteQuestion(req, res) {
   try {
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
-    console.log(req.body.id)
+    console.log(req.body.id);
 
-    const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`).exec();
+    const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`)
+      .exec();
 
     TestCaseModel.deleteMany(testCases);
 
     if (!deletedItem) {
-      return res.status(404).json({ message: 'Item not found' });
+      return res.status(404).json({ message: "Item not found" });
     }
     return res.status(201).json({
       message: "Successfully Deleted",
-      testCases: testCases
-    })
-  }
-  catch (error) {
+      testCases: testCases,
+    });
+  } catch (error) {
     return res.status(500).json({
       message: error.message,
     });
@@ -113,18 +111,18 @@ async function updateQuestion(req, res) {
       {
         $set: req.body,
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedData) {
-      return res.status(404).json({ message: 'Item not found' });
+      return res.status(404).json({ message: "Item not found" });
     }
 
     return res.status(200).json(updatedData);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
-};
+}
 
 async function createQuestion(req, res) {
   try {
@@ -156,5 +154,5 @@ module.exports = {
   getByRound,
   getQuestionByID,
   updateQuestion,
-  deleteQuestion
+  deleteQuestion,
 };
