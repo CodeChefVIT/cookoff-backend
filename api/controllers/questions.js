@@ -60,10 +60,14 @@ async function getByRound(req, res) {
     let questionByRound;
     const decoded = req.user;
     if (decoded.userRole == "admin") {
-      questionByRound = await ques.where("round").equals(req.body.round)
+      questionByRound = await ques
+        .where("isActive")
+        .equals(true)
         .populate("testCases");
     } else {
-      questionByRound = await ques.where("round").equals(req.body.round)
+      questionByRound = await ques
+        .where("isActive")
+        .equals(true)
         .populate({ path: "testCases", match: { hidden: false } });
     }
     if (questionByRound.length == 0) {
@@ -85,7 +89,8 @@ async function deleteQuestion(req, res) {
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
     console.log(req.body.id);
 
-    const testCases = await TestCaseModel.find().where(`_id: ${req.params.id}`)
+    const testCases = await TestCaseModel.find()
+      .where(`_id: ${req.params.id}`)
       .exec();
 
     TestCaseModel.deleteMany(testCases);
@@ -111,7 +116,7 @@ async function updateQuestion(req, res) {
       {
         $set: req.body,
       },
-      { new: true },
+      { new: true }
     );
 
     if (!updatedData) {
