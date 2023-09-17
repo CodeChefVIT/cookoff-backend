@@ -116,7 +116,7 @@ async function updateQuestion(req, res) {
       {
         $set: req.body,
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedData) {
@@ -141,6 +141,7 @@ async function createQuestion(req, res) {
       sampleTestOutput: req.body.sampleTestOutput,
       explanation: req.body.explanation,
       objective: req.body.objective,
+      points: req.body.points,
       testCases: [],
     });
     await Ques.save();
