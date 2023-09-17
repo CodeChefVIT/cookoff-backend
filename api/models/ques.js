@@ -10,6 +10,7 @@ const quesSchema = new mongoose.Schema({
   sampleTestInput: [{ type: String, required: true }],
   sampleTestOutput: [{ type: String, required: true }],
   explanation: [{ type: String }],
+  isActive: { type: Boolean, default: false },
   points: { type: Number },
   testCases: [{ type: mongoose.Schema.Types.ObjectId, ref: "Testcase" }],
 });

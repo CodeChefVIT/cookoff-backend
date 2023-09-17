@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Question = require("../models/ques");
 const bcrypt = require('bcrypt');
 
 const adminController = {
@@ -68,6 +69,28 @@ const adminController = {
             user.isActive = true;
             await user.save();
             res.status(200).json({ message: 'The user has been unbanned.'})
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    enableRound: async (req, res) => {
+        const { round } = req.params;
+        try {
+            const Questions = await Question.find({ round });
+            Questions.updateMany({isActive: true});
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+    
+    disableRound: async (req, res) => {
+        const { round } = req.params;
+        try {
+            const Questions = await Question.find({ round });
+            Questions.updateMany({isActive: false});
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal server error' });
