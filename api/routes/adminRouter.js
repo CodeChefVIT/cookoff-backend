@@ -9,8 +9,8 @@ router.get('/dashboard', (req, res) => {
 });
 
 router.get('/getAllUsers', adminController.getAllUsers);
-router.get('/enableRound/:id', adminController.enableRound);
-router.get('/disableRound/:id', adminController.disableRound);
+router.get('/enableRound/:round', adminController.enableRound);
+router.get('/disableRound/:round', adminController.disableRound);
 router.post('/getUserByID', adminController.getUserbyID);
 router.post('/promoteUser', adminController.promoteUser);
 router.post('/banUser', adminController.banUser);
