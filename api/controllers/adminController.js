@@ -78,8 +78,8 @@ const adminController = {
     enableRound: async (req, res) => {
         const { round } = req.params;
         try {
-            const Questions = await Question.find({ round });
-            Questions.updateMany({isActive: true});
+            await Question.updateMany({ round }, { isActive: true });
+            res.status(200).json({ message: `Enabled Round ${round}` });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal server error' });
@@ -89,8 +89,8 @@ const adminController = {
     disableRound: async (req, res) => {
         const { round } = req.params;
         try {
-            const Questions = await Question.find({ round });
-            Questions.updateMany({isActive: false});
+            await Question.updateMany({ round }, { isActive: false });
+            res.status(200).json({ message: `Disabled Round ${round}` });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal server error' });
