@@ -80,14 +80,15 @@ class submission {
     );
     if (check && check.code == code) {
       await this.create_score(reg_no);
+      if(!check.lastResults[0]){
       res.status(201).json({
         error: check.lastResults,
         Sub_db: "No changes in source code",
         Score: check.score,
-      });
+      })
       return;
     }
-
+    }
     let multipler;
     switch (parseInt(language_id)) {
       case 50: //for C
@@ -121,6 +122,12 @@ class submission {
       return;
     }
     const testcases = testcase.testCases;
+    if(testcases.length == 0){
+      res.status(400).json({
+        Error : "Testcases are not present"
+      });
+      return;
+    }
     let tests = [];
     let grp = {};
     for (let i in testcases) {
@@ -185,7 +192,7 @@ class submission {
     });
     const url = Judge0 + "/submissions/batch?tokens=" +
       str.toString() +
-      "&base64_encoded=true&fields=status_id,stderr,compile_output";
+      "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout";
     console.log(url);
     let completion = false;
     let data_sent_back = {
@@ -209,9 +216,15 @@ class submission {
             completion = false;
             break;
           case 3:
+            //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             break;
           case 4:
-            if (element.expected_output + "\n" == element.stdout) continue;
+            //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
+            //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
+            if ((Buffer.from(element.stdout,"base64").toString("utf-8") + "\n")
+             == Buffer.from(element.expected_output,"base64").toString("utf-8") ||
+             (Buffer.from(element.stdout,"base64").toString("utf-8"))
+             == Buffer.from(element.expected_output,"base64").toString("utf-8")) continue;
             else {
               data_sent_back.error[3] = true; 
               failed.push(i);
@@ -254,8 +267,16 @@ class submission {
           Buffer.from(result[0].stderr,"base64").toString(
             "utf-8"
           );
+          data_sent_back.Sub_db = await this.create(
+            req,
+            reg_no,
+            0,
+            Object.keys(grp).length,
+            data_sent_back.error,
+          );
           res.status(201).json({
             error : data_sent_back.error,
+            Sub_db :data_sent_back.Sub_db,
             message : msg
           });
           return;
@@ -335,6 +356,28 @@ class submission {
     const { regno } = req.params;
     const record = await User.findOne({ regNo: regno }, "name regNo score");
     res.status(200).json(record);
+  }
+
+  async get_all(req,res) {
+    const { regno } = req.body;
+    const record = await submission_db.find({regNo : regno},"code score question_id");
+    console.log(record);
+    if(record.length == 0){
+      res.status(400).json({
+        Error : "Invalid regNo"
+      })
+      return;
+    }
+    let msg = [];
+    record.forEach((element) => {
+      const data = {
+        question_id : element.question_id,
+        code : element.code,
+        score : element.score
+      }
+      msg.push(data); 
+    })
+    res.status(200).json(msg);
   }
 }
 module.exports = submission;
