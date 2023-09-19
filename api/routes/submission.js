@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const submission = require("../controllers/submission.js");
-const {verifyAdminToken} = require("../middleware/jwtMiddleware.js");
+const {verifyAdminToken, verifyAccessToken} = require("../middleware/jwtMiddleware.js");
 const {verifyQuestion} = require("../middleware/verifyQuestion.js");
 
 const submit = new submission();
 
-router.post("/eval", verifyQuestion, (req, res) => {
+router.post("/eval", verifyAccessToken, verifyQuestion, (req, res) => {
   submit.eval(req, res);
 });
 
