@@ -76,8 +76,9 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults",
+      "code score lastResults allPassesAt",
     );
+    //console.log(!check.allPassesAt);
     if (check && check.code == code) {
       await this.create_score(reg_no);
       if(!check.lastResults[0]){
@@ -293,15 +294,23 @@ class submission {
             score += 1;
           }
         });
-        data_sent_back.Sub_db = await this.create(
-          req,
-          reg_no,
-          score,
-          Object.keys(grp).length,
-          data_sent_back.error,
-        );
-        await this.create_score(reg_no);
-        data_sent_back.Score = score;
+        if(!data_sent_back.error.includes(true) && !check.allPassesAt){
+          console.log(!check.allPassesAt);
+          this.update_time_passed(reg_no,question_id);
+        }
+        data_sent_back.Score = score>=check.score?score:check.score;
+        if(data_sent_back.Score == score){
+          data_sent_back.Sub_db = await this.create(
+            req,
+            reg_no,
+            score,
+            Object.keys(grp).length,
+            data_sent_back.error,
+          );
+          await this.create_score(reg_no);
+        } else{
+          data_sent_back.Sub_db = "No changes in Sub DB";
+        }
         res.status(201).json(data_sent_back);
         break;
       }
@@ -379,5 +388,13 @@ class submission {
     })
     res.status(200).json(msg);
   }
+
+  async update_time_passed(user,question_id){
+    const curr_time = new Date().getTime();
+    return await submission_db.updateOne({regNo : user , question_id : question_id}
+    ,{allPassesAt : curr_time}).then(() => "Updated all testcases timestamp")
+    .catch(() => "Failed to update the timestamp");
+  }
+
 }
 module.exports = submission;
