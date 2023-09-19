@@ -294,11 +294,11 @@ class submission {
             score += 1;
           }
         });
-        if(!data_sent_back.error.includes(true) && !check.allPassesAt){
-          console.log(!check.allPassesAt);
+        if(!data_sent_back.error.includes(true) && (!check || !check.allPassesAt)){
+          //console.log(!check.allPassesAt);
           this.update_time_passed(reg_no,question_id);
         }
-        data_sent_back.Score = score>=check.score?score:check.score;
+        data_sent_back.Score = (!check || score>=check.score)?score:check.score;
         if(data_sent_back.Score == score){
           data_sent_back.Sub_db = await this.create(
             req,
@@ -320,7 +320,8 @@ class submission {
   async leaderboard(req, res) {
     const all = await User.find({}, "regNo score").sort({
       score: -1,
-      updatedAt: 1,
+      submissionTime: 1,
+      updatedAt : 1
     });
     res.status(200).json(all);
   }
@@ -391,6 +392,7 @@ class submission {
 
   async update_time_passed(user,question_id){
     const curr_time = new Date().getTime();
+    await User.updateOne({regNo : user},{submissionTime : curr_time});
     return await submission_db.updateOne({regNo : user , question_id : question_id}
     ,{allPassesAt : curr_time}).then(() => "Updated all testcases timestamp")
     .catch(() => "Failed to update the timestamp");

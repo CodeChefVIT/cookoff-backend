@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema(
         score:{
             type: Number,
             default : 0
+        },
+        submissionTime:{
+            type : Date,
+            default : new Date("2025")
         }
     },
     {
