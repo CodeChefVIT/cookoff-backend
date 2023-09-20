@@ -1,10 +1,9 @@
 const ques = require("../models/ques");
-const jwt = require("jsonwebtoken");
 const TestCaseModel = require("../models/testCasesModel");
 
 async function getQuestionByID(req, res) {
   try {
-    var questions;
+    let questions;
     const decoded = req.user;
 
     if (decoded.userRole == "admin") {
@@ -31,7 +30,7 @@ async function getQuestionByID(req, res) {
 
 async function getAll(req, res) {
   try {
-    var questionsAll;
+    let questionsAll;
     const decoded = req.user;
     if (decoded.userRole == "admin") {
       questionsAll = await ques.find().populate("testCases");
