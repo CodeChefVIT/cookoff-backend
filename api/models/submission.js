@@ -7,7 +7,8 @@ const submission_schema = new Schema({
     max_score : {type:Number,required:true},
     question_id : {type:mongoose.Schema.Types.ObjectId, ref : "Questions", required: true},
     score : {type: Number},
-    lastResults : [{type: Boolean}]},
+    lastResults : [{type: Boolean}],
+    allPassesAt: {type:Date}},
     {timestamps : true}
 );
 
