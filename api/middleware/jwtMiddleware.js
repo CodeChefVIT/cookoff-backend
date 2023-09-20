@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const User = require("../models/User");
+const Ques = require("../models/ques");
 
 async function verifyAccessToken(req, res, next) {
   const authHeader = req.header("Authorization");
@@ -60,7 +61,9 @@ async function verifyAdminToken(req, res, next) {
     const user = await User.findOne({ regNo: decoded.regNo });
     const role = decoded.userRole;
     if (
-      !user || user.tokenVersion !== decoded.tokenVersion || role !== "admin"
+      !user ||
+      user.tokenVersion !== decoded.tokenVersion ||
+      role !== "admin"
     ) {
       return res.status(403).json({ message: "Unauthorized" });
     }
@@ -71,8 +74,34 @@ async function verifyAdminToken(req, res, next) {
   }
 }
 
+async function verifyQuestion(req, res, next) {
+  const { question_id } = req.body;
+  try {
+    const user = await User.findOne({ regNo: req.user.regNo });
+    const ques = await Ques.findOne({ _id: question_id });
+    console.log(ques);
+    if (!ques) {
+      return res.status(403).json({ message: "Question not found" });
+    }
+    if (!ques.isActive) {
+      return res.status(403).json({ message: "This question is inactive." });
+    }
+    if (user.roundQualified !== ques.round) {
+      return res.status(403).json({
+        message:
+          "This user is not allowed to make a submission for this question.",
+      });
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+}
+
 module.exports = {
   verifyAccessToken,
   verifyRefreshToken,
   verifyAdminToken,
+  verifyQuestion,
 };
