@@ -254,12 +254,13 @@ class submission {
         }
       }
       if (completion) {
-        //console.log(failed);
-        //console.log(grp);
+        //Checking whether complilation error or runtime error
         if(failed.length != tests.length && data_sent_back.error[0]){
           data_sent_back.error[0] = false;
           data_sent_back.error[1] = true;
         }
+
+        //In case of complilation error the following code will run
         if(data_sent_back.error[0]){
           const msg = (result[0].compile_output != null)?
           Buffer.from(result[0].compile_output, "base64").toString(
@@ -268,13 +269,7 @@ class submission {
           Buffer.from(result[0].stderr,"base64").toString(
             "utf-8"
           );
-          data_sent_back.Sub_db = await this.create(
-            req,
-            reg_no,
-            0,
-            Object.keys(grp).length,
-            data_sent_back.error,
-          );
+          data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
             error : data_sent_back.error,
             Sub_db :data_sent_back.Sub_db,
@@ -282,6 +277,8 @@ class submission {
           });
           return;
         }
+
+        //Calculate the score of the given code
         Object.keys(grp).forEach((element) => {
           let check = true;
           const hell = grp[element];
@@ -294,11 +291,12 @@ class submission {
             score += 1;
           }
         });
-        if(!data_sent_back.error.includes(true) && (!check || !check.allPassesAt)){
-          //console.log(!check.allPassesAt);
-          this.update_time_passed(reg_no,question_id);
-        }
+
+        //comparing the score with the existing score and picking the best one
         data_sent_back.Score = (!check || score>=check.score)?score:check.score;
+        console.log(data_sent_back.Score,score)
+        
+        //If new score is higher or equal to the existing score, then sub DB is updated
         if(data_sent_back.Score == score){
           data_sent_back.Sub_db = await this.create(
             req,
@@ -310,6 +308,11 @@ class submission {
           await this.create_score(reg_no);
         } else{
           data_sent_back.Sub_db = "No changes in Sub DB";
+        }
+
+        //Creation of allPassesAt field when all testcases are passed
+        if(!data_sent_back.error.includes(true) && (!check || !check.allPassesAt)){
+          this.update_time_passed(reg_no,question_id);
         }
         res.status(201).json(data_sent_back);
         break;
