@@ -26,7 +26,7 @@ class submission {
             score: score,
             max_score: max,
             lastResults: result,
-          },
+          }
         )
         .then(() => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -76,7 +76,7 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults allPassesAt",
+      "code score lastResults allPassesAt"
     );
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
@@ -144,7 +144,7 @@ class submission {
         language_id: language_id,
         stdin: Buffer.from(current.input, "binary").toString("base64"),
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
-          "base64",
+          "base64"
         ),
         cpu_time_limit: current.time * multipler < 15
           ? current.time * multipler
@@ -176,7 +176,7 @@ class submission {
           header: {
             "Content-Type": "application/JSON",
           },
-        },
+        }
       )
       .then((response) => response.data)
       .catch((err) => {
@@ -192,7 +192,9 @@ class submission {
     tokens.forEach((element) => {
       str.push(element.token);
     });
-    const url = Judge0 + "/submissions/batch?tokens=" +
+    const url =
+      Judge0 +
+      "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout";
     console.log(url);
@@ -311,7 +313,7 @@ class submission {
             reg_no,
             score,
             Object.keys(grp).length,
-            data_sent_back.error,
+            data_sent_back.error
           );
           await this.create_score(reg_no);
         } else {

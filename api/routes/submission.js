@@ -25,4 +25,8 @@ router.get("/codes", verifyAdminToken, (req, res) => {
   submit.get_all(req, res);
 });
 
+router.get("/endtest", verifyAccessToken, (req, res) => {
+  submit.endtest(req, res);
+});
+
 module.exports = router;
