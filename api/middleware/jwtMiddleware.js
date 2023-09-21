@@ -86,6 +86,11 @@ async function verifyQuestion(req, res, next) {
     if (!ques.isActive) {
       return res.status(403).json({ message: "This question is inactive." });
     }
+    if (!user.isRoundActive) {
+      return res
+        .status(403)
+        .json({ message: "User has submitted the test already." });
+    }
     if (user.roundQualified !== ques.round) {
       return res.status(403).json({
         message:

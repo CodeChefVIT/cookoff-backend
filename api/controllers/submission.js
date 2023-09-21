@@ -26,7 +26,7 @@ class submission {
             score: score,
             max_score: max,
             lastResults: result,
-          },
+          }
         )
         .then(async () => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -76,19 +76,19 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults allPassesAt",
+      "code score lastResults allPassesAt"
     );
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
       await this.create_score(reg_no);
-      if(!check.lastResults[0]){
-      res.status(201).json({
-        error: check.lastResults,
-        Sub_db: "No changes in source code",
-        Score: check.score,
-      })
-      return;
-    }
+      if (!check.lastResults[0]) {
+        res.status(201).json({
+          error: check.lastResults,
+          Sub_db: "No changes in source code",
+          Score: check.score,
+        });
+        return;
+      }
     }
     let multipler;
     switch (parseInt(language_id)) {
@@ -123,9 +123,9 @@ class submission {
       return;
     }
     const testcases = testcase.testCases;
-    if(testcases.length == 0){
+    if (testcases.length == 0) {
       res.status(400).json({
-        Error : "Testcases are not present"
+        Error: "Testcases are not present",
       });
       return;
     }
@@ -144,7 +144,7 @@ class submission {
         language_id: language_id,
         stdin: Buffer.from(current.input, "binary").toString("base64"),
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
-          "base64",
+          "base64"
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
@@ -167,7 +167,7 @@ class submission {
 
     const tokens = await axios
       .post(
-        Judge0+"/submissions/batch?base64_encoded=true",
+        Judge0 + "/submissions/batch?base64_encoded=true",
         {
           submissions: tests,
         },
@@ -175,7 +175,7 @@ class submission {
           header: {
             "Content-Type": "application/JSON",
           },
-        },
+        }
       )
       .then((response) => response.data)
       .catch((err) => {
@@ -191,13 +191,15 @@ class submission {
     tokens.forEach((element) => {
       str.push(element.token);
     });
-    const url = Judge0 + "/submissions/batch?tokens=" +
+    const url =
+      Judge0 +
+      "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout";
     console.log(url);
     let completion = false;
     let data_sent_back = {
-      error: [false,false,false,false], //false means it passed that grp
+      error: [false, false, false, false], //false means it passed that grp
       //[complilation error/runtime,time limit exceeded, O/P failed]
       Sub_db: "",
       Score: "",
@@ -222,12 +224,17 @@ class submission {
           case 4:
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
-            if ((Buffer.from(element.stdout,"base64").toString("utf-8") + "\n")
-             == Buffer.from(element.expected_output,"base64").toString("utf-8") ||
-             (Buffer.from(element.stdout,"base64").toString("utf-8"))
-             == Buffer.from(element.expected_output,"base64").toString("utf-8")) continue;
+            if (
+              Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
+                Buffer.from(element.expected_output, "base64").toString(
+                  "utf-8"
+                ) ||
+              Buffer.from(element.stdout, "base64").toString("utf-8") ==
+                Buffer.from(element.expected_output, "base64").toString("utf-8")
+            )
+              continue;
             else {
-              data_sent_back.error[3] = true; 
+              data_sent_back.error[3] = true;
               failed.push(i);
             }
             break;
@@ -271,9 +278,9 @@ class submission {
           );
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
-            error : data_sent_back.error,
-            Sub_db :data_sent_back.Sub_db,
-            message : msg
+            error: data_sent_back.error,
+            Sub_db: data_sent_back.Sub_db,
+            message: msg,
           });
           return;
         }
@@ -303,10 +310,10 @@ class submission {
             reg_no,
             score,
             Object.keys(grp).length,
-            data_sent_back.error,
+            data_sent_back.error
           );
           await this.create_score(reg_no);
-        } else{
+        } else {
           data_sent_back.Sub_db = "No changes in Sub DB";
         }
 
@@ -324,7 +331,7 @@ class submission {
     const all = await User.find({}, "regNo score").sort({
       score: -1,
       submissionTime: 1,
-      updatedAt : 1
+      updatedAt: 1,
     });
     res.status(200).json(all);
   }
@@ -371,35 +378,59 @@ class submission {
     res.status(200).json(record);
   }
 
-  async get_all(req,res) {
+  async get_all(req, res) {
     const { regno } = req.body;
-    const record = await submission_db.find({regNo : regno},"code score question_id");
+    const record = await submission_db.find(
+      { regNo: regno },
+      "code score question_id"
+    );
     console.log(record);
-    if(record.length == 0){
+    if (record.length == 0) {
       res.status(400).json({
-        Error : "Invalid regNo"
-      })
+        Error: "Invalid regNo",
+      });
       return;
     }
     let msg = [];
     record.forEach((element) => {
       const data = {
-        question_id : element.question_id,
-        code : element.code,
-        score : element.score
-      }
-      msg.push(data); 
-    })
+        question_id: element.question_id,
+        code: element.code,
+        score: element.score,
+      };
+      msg.push(data);
+    });
     res.status(200).json(msg);
   }
 
-  async update_time_passed(user,question_id){
+  async update_time_passed(user, question_id) {
     const curr_time = new Date().getTime();
-    await User.updateOne({regNo : user},{submissionTime : curr_time});
-    return await submission_db.updateOne({regNo : user , question_id : question_id}
-    ,{allPassesAt : curr_time}).then(() => "Updated all testcases timestamp")
-    .catch(() => "Failed to update the timestamp");
+    await User.updateOne({ regNo: user }, { submissionTime: curr_time });
+    return await submission_db
+      .updateOne(
+        { regNo: user, question_id: question_id },
+        { allPassesAt: curr_time }
+      )
+      .then(() => "Updated all testcases timestamp")
+      .catch(() => "Failed to update the timestamp");
   }
 
+  async endtest(req, res) {
+    try {
+      const user = await User.findOne({ regNo: req.user.regNo });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ status: false, message: "User Not Found" });
+      }
+      user.isRoundActive = false;
+      await user.save();
+      return res
+        .status(200)
+        .json({ status: true, message: "Test ended succesfully" });
+    } catch (error) {
+      return res.status(500).json({ status: false, error: error });
+    }
+  }
 }
 module.exports = submission;
