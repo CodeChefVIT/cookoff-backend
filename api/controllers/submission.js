@@ -28,7 +28,7 @@ class submission {
             lastResults: result,
           },
         )
-        .then(async () => "Submission record has been updated")
+        .then(() => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
     } else {
       return await submission_db
@@ -385,7 +385,7 @@ class submission {
     const { regno } = req.body;
     const record = await submission_db.find(
       { regNo: regno },
-      "code score question_id",
+      "code score question_id lastResults",
     );
     console.log(record);
     if (record.length == 0) {
@@ -396,10 +396,19 @@ class submission {
     }
     let msg = [];
     record.forEach((element) => {
+      const results = element.lastResults;
+      const compilation_error = results[0];
+      const runtime_error = results[1];
+      const time_limit_exceeded = results[2];
+      const output_no_match = results[3];
       const data = {
         question_id: element.question_id,
         code: element.code,
         score: element.score,
+        compilation_error: compilation_error,
+        runtime_error: runtime_error,
+        time_limit_exceeded: time_limit_exceeded,
+        output_did_not_match: output_no_match,
       };
       msg.push(data);
     });
