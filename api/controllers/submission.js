@@ -146,9 +146,8 @@ class submission {
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
           "base64"
         ),
-        cpu_time_limit: current.time * multipler < 15
-          ? current.time * multipler
-          : 15,
+        cpu_time_limit:
+          current.time * multipler < 15 ? current.time * multipler : 15,
         //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
@@ -226,14 +225,14 @@ class submission {
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
             if (
-              (Buffer.from(element.stdout, "base64").toString("utf-8") +
-                  "\n") ==
+              Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
                 Buffer.from(element.expected_output, "base64").toString(
-                  "utf-8",
+                  "utf-8"
                 ) ||
-              (Buffer.from(element.stdout, "base64").toString("utf-8")) ==
+              Buffer.from(element.stdout, "base64").toString("utf-8") ==
                 Buffer.from(element.expected_output, "base64").toString("utf-8")
-            ) continue;
+            )
+              continue;
             else {
               data_sent_back.error[3] = true;
               failed.push(i);
@@ -270,13 +269,12 @@ class submission {
 
         //In case of complilation error the following code will run
         if (data_sent_back.error[0]) {
-          const msg = (result[0].compile_output != null)
-            ? Buffer.from(result[0].compile_output, "base64").toString(
-              "utf-8",
-            )
-            : Buffer.from(result[0].stderr, "base64").toString(
-              "utf-8",
-            );
+          const msg =
+            result[0].compile_output != null
+              ? Buffer.from(result[0].compile_output, "base64").toString(
+                  "utf-8"
+                )
+              : Buffer.from(result[0].stderr, "base64").toString("utf-8");
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
             error: data_sent_back.error,
@@ -301,9 +299,8 @@ class submission {
         });
 
         //comparing the score with the existing score and picking the best one
-        data_sent_back.Score = (!check || score >= check.score)
-          ? score
-          : check.score;
+        data_sent_back.Score =
+          !check || score >= check.score ? score : check.score;
         console.log(data_sent_back.Score, score);
 
         //If new score is higher or equal to the existing score, then sub DB is updated
@@ -322,7 +319,8 @@ class submission {
 
         //Creation of allPassesAt field when all testcases are passed
         if (
-          !data_sent_back.error.includes(true) && (!check || !check.allPassesAt)
+          !data_sent_back.error.includes(true) &&
+          (!check || !check.allPassesAt)
         ) {
           this.update_time_passed(reg_no, question_id);
         }
@@ -387,7 +385,7 @@ class submission {
     const { regno } = req.body;
     const record = await submission_db.find(
       { regNo: regno },
-      "code score question_id lastResults",
+      "code score question_id lastResults"
     );
     console.log(record);
     if (record.length == 0) {
@@ -420,11 +418,34 @@ class submission {
   async update_time_passed(user, question_id) {
     const curr_time = new Date().getTime();
     await User.updateOne({ regNo: user }, { submissionTime: curr_time });
-    return await submission_db.updateOne({
-      regNo: user,
-      question_id: question_id,
-    }, { allPassesAt: curr_time }).then(() => "Updated all testcases timestamp")
+    return await submission_db
+      .updateOne(
+        {
+          regNo: user,
+          question_id: question_id,
+        },
+        { allPassesAt: curr_time }
+      )
+      .then(() => "Updated all testcases timestamp")
       .catch(() => "Failed to update the timestamp");
+  }
+
+  async endtest(req, res) {
+    try {
+      const user = await User.findOne({ regNo: req.user.regNo });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ status: false, message: "User Not Found" });
+      }
+      user.isRoundActive = false;
+      await user.save();
+      return res
+        .status(200)
+        .json({ status: true, message: "Test ended succesfully" });
+    } catch (error) {
+      return res.status(500).json({ status: false, error: error });
+    }
   }
 }
 module.exports = submission;

@@ -81,18 +81,18 @@ async function verifyQuestion(req, res, next) {
     const ques = await Ques.findOne({ _id: question_id });
     console.log(ques);
     if (!ques) {
-      return res.status(403).json({ message: "Question not found" });
+      return res.status(400).json({ message: "Question not found" });
     }
     if (!ques.isActive) {
-      return res.status(403).json({ message: "This question is inactive." });
+      return res.status(400).json({ message: "This question is inactive." });
     }
     if (!user.isRoundActive) {
       return res
-        .status(403)
+        .status(400)
         .json({ message: "User has submitted the test already." });
     }
     if (user.roundQualified !== ques.round) {
-      return res.status(403).json({
+      return res.status(400).json({
         message:
           "This user is not allowed to make a submission for this question.",
       });

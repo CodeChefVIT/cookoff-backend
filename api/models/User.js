@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isRoundActive: {
+      type: Boolean,
+      default: true,
+    },
     roundQualified: {
       type: Number,
       default: 0,
@@ -48,8 +52,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 const User = mongoose.model("User", userSchema);
 module.exports = User;
-
