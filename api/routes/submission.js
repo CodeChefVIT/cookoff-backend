@@ -29,4 +29,9 @@ router.get("/endtest", verifyAccessToken, (req, res) => {
   submit.endtest(req, res);
 });
 
+router.get("/finals", verifyAdminToken, (req, res)=> {
+  submit.third_round_lb(req,res);
+});
+
+
 module.exports = router;
