@@ -6,7 +6,6 @@ const createTestCase = async (req, res) => {
     const testCase = await TestCaseModel.create({
       expectedOutput: req.body.expectedOutput,
       input: req.body.input,
-      number: req.body.number,
       hidden: req.body.hidden,
       time: req.body.time,
       memory: req.body.memory,
@@ -55,21 +54,17 @@ const updateTestCase = async (req, res) => {
     const {
       expectedOutput,
       input,
-      number,
       hidden,
       time,
       memory,
       group,
       question,
     } = req.body;
-    console.log(hidden, expectedOutput);
-
     testCase.expectedOutput = expectedOutput
       ? expectedOutput
       : testCase.expectedOutput;
     testCase.input = input ? input : testCase.input;
     testCase.hidden = hidden === undefined ? hidden : testCase.hidden;
-    testCase.number = number ? number : testCase.number;
     testCase.time = time ? time : testCase.time;
     testCase.memory = memory ? memory : testCase.memory;
     testCase.group = group ? group : testCase.group;

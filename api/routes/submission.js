@@ -21,7 +21,7 @@ router.get("/score/:regno", verifyAdminToken, (req, res) => {
   submit.get_score(req, res);
 });
 
-router.get("/codes", verifyAdminToken, (req, res) => {
+router.get("/codes/:regno", verifyAdminToken, (req, res) => {
   submit.get_all(req, res);
 });
 
