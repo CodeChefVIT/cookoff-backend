@@ -265,7 +265,8 @@ class submission {
         }
       }
       //console.log(runtime);
-      runtime = runtime / (tests.length - failed.length);
+      if(tests.length == failed.length) runtime = 0;
+      else runtime = runtime/(tests.length-failed.length);
       //console.log(tests.length,failed.length);
       runtime = runtime / multipler;
       //console.log("runtime = ", runtime);
