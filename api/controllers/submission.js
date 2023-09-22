@@ -397,7 +397,7 @@ class submission {
     console.log(regno);
     const record = await submission_db.find(
       { regNo: regno },
-      "code score question_id lastResults",
+      "code score question_id lastResults language_id",
     );
     console.log(record);
     if (record.length == 0) {
