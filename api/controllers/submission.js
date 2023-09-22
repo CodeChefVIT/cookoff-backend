@@ -26,7 +26,7 @@ class submission {
             score: score,
             max_score: max,
             lastResults: result,
-          }
+          },
         )
         .then(() => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -76,7 +76,7 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults allPassesAt"
+      "code score lastResults allPassesAt",
     );
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
@@ -144,10 +144,11 @@ class submission {
         language_id: language_id,
         stdin: Buffer.from(current.input, "binary").toString("base64"),
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
-          "base64"
+          "base64",
         ),
-        cpu_time_limit:
-          current.time * multipler < 15 ? current.time * multipler : 15,
+        cpu_time_limit: current.time * multipler < 15
+          ? current.time * multipler
+          : 15,
         //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
@@ -175,7 +176,7 @@ class submission {
           header: {
             "Content-Type": "application/JSON",
           },
-        }
+        },
       )
       .then((response) => response.data)
       .catch((err) => {
@@ -191,8 +192,7 @@ class submission {
     tokens.forEach((element) => {
       str.push(element.token);
     });
-    const url =
-      Judge0 +
+    const url = Judge0 +
       "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout";
@@ -227,13 +227,13 @@ class submission {
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
                 Buffer.from(element.expected_output, "base64").toString(
-                  "utf-8"
+                  "utf-8",
                 ) ||
               Buffer.from(element.stdout, "base64").toString("utf-8") ==
                 Buffer.from(element.expected_output, "base64").toString("utf-8")
-            )
+            ) {
               continue;
-            else {
+            } else {
               data_sent_back.error[3] = true;
               failed.push(i);
             }
@@ -269,12 +269,11 @@ class submission {
 
         //In case of complilation error the following code will run
         if (data_sent_back.error[0]) {
-          const msg =
-            result[0].compile_output != null
-              ? Buffer.from(result[0].compile_output, "base64").toString(
-                  "utf-8"
-                )
-              : Buffer.from(result[0].stderr, "base64").toString("utf-8");
+          const msg = result[0].compile_output != null
+            ? Buffer.from(result[0].compile_output, "base64").toString(
+              "utf-8",
+            )
+            : Buffer.from(result[0].stderr, "base64").toString("utf-8");
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
             error: data_sent_back.error,
@@ -299,8 +298,9 @@ class submission {
         });
 
         //comparing the score with the existing score and picking the best one
-        data_sent_back.Score =
-          !check || score >= check.score ? score : check.score;
+        data_sent_back.Score = !check || score >= check.score
+          ? score
+          : check.score;
         console.log(data_sent_back.Score, score);
 
         //If new score is higher or equal to the existing score, then sub DB is updated
@@ -310,7 +310,7 @@ class submission {
             reg_no,
             score,
             Object.keys(grp).length,
-            data_sent_back.error
+            data_sent_back.error,
           );
           await this.create_score(reg_no);
         } else {
@@ -382,10 +382,10 @@ class submission {
   }
 
   async get_all(req, res) {
-    const { regno } = req.body;
+    const { regno } = req.params;
     const record = await submission_db.find(
       { regNo: regno },
-      "code score question_id lastResults"
+      "code score question_id lastResults",
     );
     console.log(record);
     if (record.length == 0) {
@@ -424,7 +424,7 @@ class submission {
           regNo: user,
           question_id: question_id,
         },
-        { allPassesAt: curr_time }
+        { allPassesAt: curr_time },
       )
       .then(() => "Updated all testcases timestamp")
       .catch(() => "Failed to update the timestamp");
