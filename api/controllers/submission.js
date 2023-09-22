@@ -392,7 +392,8 @@ class submission {
   }
 
   async get_all(req, res) {
-    const { regno } = req.body;
+    const { regno } = req.params;
+    console.log(regno);
     const record = await submission_db.find(
       { regNo: regno },
       "code score question_id lastResults"

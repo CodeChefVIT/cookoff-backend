@@ -6,8 +6,9 @@ with open("final_seeder.json") as file:
     data = json.loads(file.read())
 
 for question in data:
-    question["points"] = 10
+    if question["name"] == "ARRRCRT":
+        print(question["testCases"])
 
 
-with open("final_seeder_new.json", "w") as file:
-    file.write(json.dumps(data))
+# with open("final_seeder_new.json", "w") as file:
+#     file.write(json.dumps(data))
