@@ -9,7 +9,7 @@ require("dotenv").config();
 const Judge0 = process.env.JUDGE_URI;
 
 class submission {
-  async create(req, user, score, max, result) {
+  async create(req, user, score, max, result,time) {
     //console.log(result);
     const { language_id, code, question_id } = req.body;
     const check = await submission_db.findOne({
@@ -26,6 +26,7 @@ class submission {
             score: score,
             max_score: max,
             lastResults: result,
+            runtime : time
           }
         )
         .then(() => "Submission record has been updated")
@@ -40,6 +41,7 @@ class submission {
           score: score,
           max_score: max,
           lastResults: result,
+          runtime : time
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -195,7 +197,7 @@ class submission {
       Judge0 +
       "/submissions/batch?tokens=" +
       str.toString() +
-      "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout";
+      "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout,time";
     console.log(url);
     let completion = false;
     let data_sent_back = {
@@ -205,6 +207,7 @@ class submission {
       Score: "",
     };
     while (!completion) {
+      let runtime = 0;
       let score = 0;
       completion = true;
       let failed = [];
@@ -220,6 +223,7 @@ class submission {
             break;
           case 3:
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
+            runtime += parseFloat(element.time);
             break;
           case 4:
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
@@ -232,7 +236,7 @@ class submission {
               Buffer.from(element.stdout, "base64").toString("utf-8") ==
                 Buffer.from(element.expected_output, "base64").toString("utf-8")
             )
-              continue;
+              runtime += parseFloat(element.time);
             else {
               data_sent_back.error[3] = true;
               failed.push(i);
@@ -260,6 +264,11 @@ class submission {
             break;
         }
       }
+      //console.log(runtime);
+      runtime = runtime/(tests.length-failed.length);
+      //console.log(tests.length,failed.length);
+      runtime = runtime/multipler;
+      //console.log("runtime = ", runtime); 
       if (completion) {
         //Checking whether complilation error or runtime error
         if (failed.length != tests.length && data_sent_back.error[0]) {
@@ -310,7 +319,8 @@ class submission {
             reg_no,
             score,
             Object.keys(grp).length,
-            data_sent_back.error
+            data_sent_back.error,
+            runtime
           );
           await this.create_score(reg_no);
         } else {
@@ -446,6 +456,40 @@ class submission {
     } catch (error) {
       return res.status(500).json({ status: false, error: error });
     }
+  }
+
+  async round_lb(req,res){
+    const {round} = req.body;
+    const QID = await  questiondb.find({round : round},"_id");
+    let question = [];
+    QID.forEach((ele) => question.push(ele._id.toString()));
+    const all_submit = await submission_db.find({question_id : {"$in" : question}}
+    ,"regNo score question_id runtime allPassesAt");
+    let leaderboard = {};
+    all_submit.forEach((ele) => {
+      if (ele.regNo in leaderboard) {
+        let data = leaderboard[ele.regNo];
+        data[0] += ele.score;
+        data[1] = data[1]>ele.allPassesAt?ele.allPassesAt:data[1];
+        data[2] += ele.runtime;
+        //console.log(data);
+        leaderboard[ele.regNo] = data;
+      } else {
+        leaderboard[ele.regNo] = [ele.score,ele.allPassesAt,ele.runtime];
+      }
+    });
+    let items = Object.keys(leaderboard).map(function(key) {
+      return [key, leaderboard[key]];
+    });
+    console.log(items);
+    items.sort(function(a,b){
+      console.log(a[1][0]);
+      if(a[1][0]>b[1][0]) return -1;
+      if(a[1][0]<b[1][0]) return 1;
+      if(a[1][1]>b[1][1]) return -1;
+      if(a[1][1]<b[1][1]) return 1;
+    });
+    res.json(items);
   }
 }
 module.exports = submission;
