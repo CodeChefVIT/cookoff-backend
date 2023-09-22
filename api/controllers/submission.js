@@ -459,7 +459,7 @@ class submission {
   }
 
   async round_lb(req,res){
-    const {round} = req.body;
+    const {round} = req.params;
     const QID = await  questiondb.find({round : round},"_id");
     let question = [];
     QID.forEach((ele) => question.push(ele._id.toString()));
@@ -481,15 +481,14 @@ class submission {
     let items = Object.keys(leaderboard).map(function(key) {
       return [key, leaderboard[key]];
     });
-    console.log(items);
     items.sort(function(a,b){
       console.log(a[1][0]);
       if(a[1][0]>b[1][0]) return -1;
       if(a[1][0]<b[1][0]) return 1;
-      if(a[1][1]>b[1][1]) return -1;
-      if(a[1][1]<b[1][1]) return 1;
+      if(a[1][1]>b[1][1]) return 1;
+      if(a[1][1]<b[1][1]) return -1;
     });
-    res.json(items);
+    res.status(200).json(items);
   }
 }
 module.exports = submission;
