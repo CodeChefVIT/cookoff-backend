@@ -153,6 +153,43 @@ async function createQuestion(req, res) {
   }
 }
 
+async function dashboard(req, res) {
+  try {
+    let questionByRound;
+    const decoded = req.user;
+    if (decoded.userRole == "admin") {
+      questionByRound = await ques
+        .where("isActive")
+        .equals(true)
+        .populate("testCases");
+    } else {
+      questionByRound = await ques
+        .where("isActive")
+        .equals(true)
+        .populate({ path: "testCases", match: { hidden: false } });
+    }
+    if (questionByRound.length == 0) {
+      return res.status(404).json({
+        message: "No questions found",
+      });
+    } else {
+      const data = [];
+      questionByRound.forEach((element) => {
+        const obj = {
+          name: element.name,
+          points: element.points,
+        };
+        data.push(obj);
+      });
+      return res.status(201).json(data);
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   createQuestion,
   getAll,
@@ -160,4 +197,5 @@ module.exports = {
   getQuestionByID,
   updateQuestion,
   deleteQuestion,
+  dashboard,
 };

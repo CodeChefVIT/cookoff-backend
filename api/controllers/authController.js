@@ -21,11 +21,11 @@ const authController = {
         const accessToken = jwtController.signAccessToken(
           user.regNo,
           user.userRole,
-          user.tokenVersion
+          user.tokenVersion,
         );
         const refreshToken = jwtController.signRefreshToken(
           user.regNo,
-          user.userRole
+          user.userRole,
         );
         user.refreshToken = refreshToken;
         await user.save();
@@ -125,7 +125,7 @@ const authController = {
       const newAccessToken = jwtController.signAccessToken(
         user.regNo,
         user.userRole,
-        user.tokenVersion
+        user.tokenVersion,
       );
       res.header("Authorization", `Bearer ${newAccessToken}`);
       res.json({ accessToken: newAccessToken });

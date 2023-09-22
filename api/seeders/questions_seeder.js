@@ -18,6 +18,9 @@ const addData = async (Questions) => {
   const questions = JSON.parse(JSON.stringify(Questions));
   questions.forEach((question) => (question.testCases = []));
 
+  await TestCaseModel.deleteMany({});
+  await QuestionModel.deleteMany({});
+
   const insertedQuestions = await QuestionModel.insertMany(questions);
   const testCases = [];
 
@@ -26,7 +29,6 @@ const addData = async (Questions) => {
       tc,
     ) => (tc.question = insertedQuestions[i]._id));
     testCases.push(...Questions[i].testCases);
-    console.log(Questions[i].testCases);
   }
 
   for (let i = 0; i < testCases.length; i++) {
@@ -42,9 +44,13 @@ fs.readFile("final_seeder.json", "utf8", (err, data) => {
 
   try {
     mongoose
-      .connect("mongodb://localhost:27017/mydb")
+      // .connect("mongodb://localhost:27017/mydb")
+      .connect(
+        "mongodb+srv://doadmin:18EA0xKN3IC7259W@db-mongodb-blr1-51446-2eb2b2b3.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=db-mongodb-blr1-51446",
+      )
       .then(() => console.log("Connection Successfull"))
       .then(() => addData(JSON.parse(data)))
+      .then(() => console.log("Done"))
       .catch("Error connecting");
   } catch (parseError) {
     console.error(parseError.message);
