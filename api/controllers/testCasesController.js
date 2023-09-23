@@ -77,7 +77,7 @@ const updateTestCase = async (req, res) => {
       }
 
       const updated = await QuestionModel.findById(question);
-      console.log(updated);
+      //console.log(updated);
       updated.testCases.push(testCase._id);
       await updated.save();
 

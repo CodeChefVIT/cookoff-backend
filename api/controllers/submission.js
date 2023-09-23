@@ -150,6 +150,8 @@ class submission {
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
+        memory: 
+          current.memory * multipler<2048 ? 2048 : current.memory*multipler
         //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
@@ -198,7 +200,7 @@ class submission {
       "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout,time";
-    console.log(url);
+    //console.log(url);
     let completion = false;
     let data_sent_back = {
       error: [false, false, false, false], //false means it passed that grp
@@ -311,7 +313,7 @@ class submission {
         //comparing the score with the existing score and picking the best one
         data_sent_back.Score =
           !check || score >= check.score ? score : check.score;
-        console.log(data_sent_back.Score, score);
+        //console.log(data_sent_back.Score, score);
 
         //If new score is higher or equal to the existing score, then sub DB is updated
         if (data_sent_back.Score == score) {
@@ -326,6 +328,7 @@ class submission {
           await this.create_score(reg_no);
         } else {
           data_sent_back.Sub_db = "No changes in Sub DB";
+          await this.create_score(reg_no);
         }
 
         //Creation of allPassesAt field when all testcases are passed
@@ -366,8 +369,7 @@ class submission {
     ]);
     const score = ele[0].total;
     return User.updateOne({ regNo: user }, { score: score })
-      .then(() => console.log("Score = " + score))
-      .catch(() => console.error("Error occured while saving scores"));
+      .catch(() => console.error("Error occured while saving scores \nRegno :"+regNo+"\tScore :"+score));
   }
 
   async get_reg_no(req, res) {
@@ -394,12 +396,12 @@ class submission {
 
   async get_all(req, res) {
     const { regno } = req.params;
-    console.log(regno);
+    //console.log(regno);
     const record = await submission_db.find(
       { regNo: regno },
       "code score question_id lastResults"
     );
-    console.log(record);
+    //console.log(record);
     if (record.length == 0) {
       res.status(400).json({
         Error: "Invalid regNo",
@@ -484,7 +486,7 @@ class submission {
       return [key, leaderboard[key]];
     });
     items.sort(function(a,b){
-      console.log(a[1][0]);
+      //console.log(a[1][0]);
       if(a[1][0]>b[1][0]) return -1;
       if(a[1][0]<b[1][0]) return 1;
       if(a[1][1]>b[1][1]) return 1;

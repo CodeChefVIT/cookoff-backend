@@ -86,7 +86,7 @@ async function getByRound(req, res) {
 async function deleteQuestion(req, res) {
   try {
     const deletedItem = await ques.findByIdAndDelete(req.params.id);
-    console.log(req.body.id);
+    //console.log(req.body.id);
 
     const testCases = await TestCaseModel.find()
       .where(`_id: ${req.params.id}`)

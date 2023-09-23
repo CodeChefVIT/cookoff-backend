@@ -79,7 +79,7 @@ async function verifyQuestion(req, res, next) {
   try {
     const user = await User.findOne({ regNo: req.user.regNo });
     const ques = await Ques.findOne({ _id: question_id });
-    console.log(ques);
+    //console.log(ques);
     if (!ques) {
       return res.status(400).json({ message: "Question not found" });
     }
