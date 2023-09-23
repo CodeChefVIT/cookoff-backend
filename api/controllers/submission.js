@@ -211,16 +211,16 @@ class submission {
     console.log(url);
     let completion = false;
     let data_sent_back = {
-      error_1: [false, false, false, false], //false means it passed that grp
+      error1: [false, false, false, false], //false means it passed that grp
       //[complilation error/runtime,time limit exceeded, O/P failed]
-      error_2: [false, false, false, false],
-      error_3: [false, false, false, false],
+      error2: [false, false, false, false],
+      error3: [false, false, false, false],
       Sub_db: "",
       Score: "",
       test_passed : "",
       no_of_test : ""
     };
-    const list = [data_sent_back.error_1,data_sent_back.error_2,data_sent_back.error_3];
+    const list = [data_sent_back.error1,data_sent_back.error2,data_sent_back.error3];
     let errors = {};
     let i = 0;
     console.log(grp);
@@ -331,7 +331,7 @@ class submission {
       if (completion) {
         //Checking whether complilation error or runtime error
         Object.keys(errors).forEach((ele) => {
-          console.log("jwngbinsdvn",failed.length,tests.length,errors[ele][0]);
+          //console.log("jwngbinsdvn",failed.length,tests.length,errors[ele][0]);
           if (failed.length == tests.length && errors[ele][0]){
             console.log("jwngbinsdvn",failed.length,tests.length,errors[ele][0]);
             errors[ele][0] = true;
