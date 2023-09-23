@@ -29,9 +29,8 @@ router.get("/endtest", verifyAccessToken, (req, res) => {
   submit.endtest(req, res);
 });
 
-router.get("/round_lb/:round", verifyAdminToken, (req, res)=> {
-  submit.round_lb(req,res);
+router.get("/round_lb/:round", verifyAdminToken, (req, res) => {
+  submit.round_lb(req, res);
 });
-
 
 module.exports = router;
