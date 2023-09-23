@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get("/dashboard", verifyAccessToken, authController.dashboard);
 router.post("/login", RateLimiter, authController.login);
-router.post("/signup", authController.signup);
+router.post("/signup", verifyAdminToken, authController.signup);
 router.post("/create", authController.create);
 router.post(
   "/refresh",
