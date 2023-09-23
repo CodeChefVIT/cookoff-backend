@@ -80,19 +80,23 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults allPassesAt",
+      "code score lastResults allPassesAt testcases_passed",
     );
     //console.log(!check.allPassesAt);
-    if (check && check.code == code) {
+    console.log(check != null && check.code == code,check);
+    if (check != null && check.code == code) {
       await this.create_score(reg_no);
-      const max = await questiondb.findById(question_id,"testcases");
-      if (!check.lastResults[0]) {
+      const max = await questiondb.findById(question_id,"testCases");
+      console.log(max);
+      if (check.lastResults.length !== 0) {
         res.status(201).json({
-          error: check.lastResults,
+          error1: check.lastResults[0],
+          error2: check.lastResults[1],
+          error3: check.lastResults[2],
           Sub_db: "No changes in source code",
           Score: check.score,
           test_passed : check.testcases_passed,
-          no_of_test : max.length
+          no_of_test : max.testCases.length
         });
         return;
       }
@@ -207,13 +211,25 @@ class submission {
     console.log(url);
     let completion = false;
     let data_sent_back = {
-      error: [false, false, false, false], //false means it passed that grp
+      error_1: [false, false, false, false], //false means it passed that grp
       //[complilation error/runtime,time limit exceeded, O/P failed]
+      error_2: [false, false, false, false],
+      error_3: [false, false, false, false],
       Sub_db: "",
       Score: "",
       test_passed : "",
       no_of_test : ""
     };
+    const list = [data_sent_back.error_1,data_sent_back.error_2,data_sent_back.error_3];
+    let errors = {};
+    let i = 0;
+    console.log(grp);
+    Object.values(grp).forEach((ele) => {
+      console.log(ele);
+      errors[ele] = list[i++];
+    });
+
+    console.log("error = ",errors);
     while (!completion) {
       let runtime = 0;
       let score = 0;
@@ -238,7 +254,13 @@ class submission {
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
             if (element.stdout == null){
-              data_sent_back.error[3] = true;
+              Object.keys(errors).forEach((ele) => {
+                if(ele.includes(i)){
+                  console.log(errors[ele]);
+                  errors[ele][3] = true;
+                }
+              });
+              //data_sent_back.error[3] = true;
               failed.push(i);
               continue;
             }
@@ -252,18 +274,33 @@ class submission {
             ) {
               runtime += parseFloat(element.time);
             } else {
-              data_sent_back.error[3] = true;
+              Object.keys(errors).forEach((ele) => {
+                if(ele.includes(i)){
+                  console.log(ele);
+                  console.log(errors[ele]);
+                  errors[ele][3] = true;
+                }
+              });
               failed.push(i);
             }
             break;
           case 5:
             failed.push(i);
-            data_sent_back.error[2] = true;
+            Object.keys(errors).forEach((ele) => {
+              if(ele.includes(i)){
+                errors[ele][2] = true;
+              }
+            });
             error = element.compile_output;
             break;
           case 6:
             failed.push(i);
-            data_sent_back.error[0] = true;
+            error = element.compile_output;
+            Object.keys(errors).forEach((ele) => {
+              if(ele.includes(i)){
+                errors[ele][0] = true;
+              }
+            });
             break;
           case 13:
             failed.push(i);
@@ -275,7 +312,11 @@ class submission {
             return;
           default:
             failed.push(i);
-            data_sent_back.error[0] = true;
+            Object.keys(errors).forEach((ele) => {
+              if(ele.includes(i)){
+                errors[ele][0] = true;
+              }
+            });
             error = (error=="")?element.stderr:error;
             break;
         }
@@ -286,32 +327,42 @@ class submission {
       //console.log(tests.length,failed.length);
       runtime = runtime / multipler;
       //console.log("runtime = ", runtime);
+      let complilation = false;
       if (completion) {
         //Checking whether complilation error or runtime error
-        if (failed.length != tests.length && data_sent_back.error[0]) {
-          data_sent_back.error[0] = false;
-          data_sent_back.error[1] = true;
-          data_sent_back.error[2] = true;
-          data_sent_back.error[3] = true;
-        }
+        Object.keys(errors).forEach((ele) => {
+          console.log("jwngbinsdvn",failed.length,tests.length,errors[ele][0]);
+          if (failed.length == tests.length && errors[ele][0]){
+            console.log("jwngbinsdvn",failed.length,tests.length,errors[ele][0]);
+            errors[ele][0] = true;
+            errors[ele][1] = false;
+            errors[ele][2] = false;
+            errors[ele][3] = false;
+            complilation = true;
+          }
+        })
 
+        const sent_back = Object.values(errors);
         //In case of complilation error the following code will run
-        if (data_sent_back.error[0]) {
-          const msg = result[0].compile_output != null
+        if (complilation) {
+          /*const msg = result[0].compile_output != null
             ? Buffer.from(result[0].compile_output, "base64").toString(
               "utf-8",
             )
-            : Buffer.from(error, "base64").toString("utf-8");
+            : Buffer.from(error, "base64").toString("utf-8");*/
+          const msg = Buffer.from(error,"base64").toString("utf-8");
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
-            error: data_sent_back.error,
+            error1: sent_back[0],
+            error2: sent_back[1],
+            error3: sent_back[2],
             Sub_db: data_sent_back.Sub_db,
             message: msg,
           });
           return;
         }
 
-        if(data_sent_back.error[2]) data_sent_back.error[3] = true;
+        //if(data_sent_back.error[2]) data_sent_back.error[3] = true;
 
         //Calculate the score of the given code
         Object.keys(grp).forEach((element) => {
@@ -340,7 +391,7 @@ class submission {
             reg_no,
             score,
             Object.keys(grp).length,
-            data_sent_back.error,
+            sent_back,
             runtime,
             (tests.length - failed.length)
           );
@@ -353,12 +404,17 @@ class submission {
         data_sent_back.no_of_test = tests.length;
 
         //Creation of allPassesAt field when all testcases are passed
-        if (
-          !data_sent_back.error.includes(true) &&
-          (!check || !check.allPassesAt)
-        ) {
-          this.update_time_passed(reg_no, question_id);
-        }
+        let passed = false;
+        Object.values(errors).forEach((ele) =>{
+          if (!ele.includes(true) &&
+            (!check || !check.allPassesAt)
+          ) passed = true;
+        })
+        if(passed) 
+          {
+            this.update_time_passed(reg_no, question_id);
+          }
+      
         res.status(201).json(data_sent_back);
         break;
       }

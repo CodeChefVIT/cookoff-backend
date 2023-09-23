@@ -11,7 +11,7 @@ const submission_schema = new Schema({
         required: true,
     },
     score: { type: Number },
-    lastResults: [{ type: Boolean }],
+    lastResults: [[{ type: Boolean }]],
     allPassesAt: { type: Date },
     runtime: {type: Number, required: true},
     testcases_passed : {type:Number},
