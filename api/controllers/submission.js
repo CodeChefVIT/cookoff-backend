@@ -204,7 +204,7 @@ class submission {
       "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout,time";
-    //console.log(url);
+    console.log(url);
     let completion = false;
     let data_sent_back = {
       error: [false, false, false, false], //false means it passed that grp
@@ -237,6 +237,11 @@ class submission {
           case 4:
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
+            if (element.stdout == null){
+              data_sent_back.error[3] = true;
+              failed.push(i);
+              continue;
+            }
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
               Buffer.from(element.expected_output, "base64").toString(
