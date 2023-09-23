@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: cookooff-backend-deployment
 spec:
-  replicas: 6
+  replicas: 10
   selector:
     matchLabels:
       app: cookooff-backend
