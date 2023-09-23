@@ -30,7 +30,7 @@ const adminController = {
   promoteUser: async (req, res) => {
     const { regNo, round } = req.body;
     try {
-      const user = await User.findOne({ regNo });
+      const user = await User.findOne({ regNo: regNo });
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }

@@ -1,5 +1,6 @@
 const ques = require("../models/ques");
 const TestCaseModel = require("../models/testCasesModel");
+const UserModel = require("../models/User")
 
 async function getQuestionByID(req, res) {
   try {
@@ -157,16 +158,21 @@ async function dashboard(req, res) {
   try {
     let questionByRound;
     const decoded = req.user;
+    const { round_no } = req.body;
+    const user = UserModel.findOne({ regNo: decoded.regNo });
+
     if (decoded.userRole == "admin") {
       questionByRound = await ques
         .where("isActive")
         .equals(true)
         .populate("testCases");
-    } else {
+    } else if (user.roundQualified != round_no) {
       questionByRound = await ques
         .where("isActive")
         .equals(true)
         .populate({ path: "testCases", match: { hidden: false } });
+    } else {
+      return res.status(404).json({ message: "User not qualified" });
     }
     if (questionByRound.length == 0) {
       return res.status(404).json({

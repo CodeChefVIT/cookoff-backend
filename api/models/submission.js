@@ -13,7 +13,7 @@ const submission_schema = new Schema({
     score: { type: Number },
     lastResults: [{ type: Boolean }],
     allPassesAt: { type: Date },
-    runtime: {type: Number, required: true}
+    runtime: { type: Number, required: true }
 }, { timestamps: true });
 
 const submission_db = model("Submissions", submission_schema);
