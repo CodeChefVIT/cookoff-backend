@@ -155,8 +155,8 @@ class submission {
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
-        memory: 
-          current.memory * multipler<2048 ? 2048 : current.memory*multipler
+        memory:
+          current.memory * multipler < 2048 ? 2048 : current.memory * multipler
         //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
@@ -238,11 +238,11 @@ class submission {
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
-                Buffer.from(element.expected_output, "base64").toString(
-                  "utf-8",
-                ) ||
+              Buffer.from(element.expected_output, "base64").toString(
+                "utf-8",
+              ) ||
               Buffer.from(element.stdout, "base64").toString("utf-8") ==
-                Buffer.from(element.expected_output, "base64").toString("utf-8")
+              Buffer.from(element.expected_output, "base64").toString("utf-8")
             ) {
               runtime += parseFloat(element.time);
             } else {
@@ -273,8 +273,8 @@ class submission {
         }
       }
       //console.log(runtime);
-      if(tests.length == failed.length) runtime = 0;
-      else runtime = runtime/(tests.length-failed.length);
+      if (tests.length == failed.length) runtime = 0;
+      else runtime = runtime / (tests.length - failed.length);
       //console.log(tests.length,failed.length);
       runtime = runtime / multipler;
       //console.log("runtime = ", runtime);
@@ -382,7 +382,7 @@ class submission {
     ]);
     const score = ele[0].total;
     return User.updateOne({ regNo: user }, { score: score })
-      .catch(() => console.error("Error occured while saving scores \nRegno :"+regNo+"\tScore :"+score));
+      .catch(() => console.error("Error occured while saving scores \nRegno :" + regNo + "\tScore :" + score));
   }
 
   async get_reg_no(req, res) {
@@ -500,12 +500,12 @@ class submission {
     let items = Object.keys(leaderboard).map(function (key) {
       return [key, leaderboard[key]];
     });
-    items.sort(function(a,b){
+    items.sort(function (a, b) {
       //console.log(a[1][0]);
-      if(a[1][0]>b[1][0]) return -1;
-      if(a[1][0]<b[1][0]) return 1;
-      if(a[1][1]>b[1][1]) return 1;
-      if(a[1][1]<b[1][1]) return -1;
+      if (a[1][0] > b[1][0]) return -1;
+      if (a[1][0] < b[1][0]) return 1;
+      if (a[1][1] > b[1][1]) return 1;
+      if (a[1][1] < b[1][1]) return -1;
     });
     res.status(200).json(items);
   }
