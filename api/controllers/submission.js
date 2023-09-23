@@ -9,7 +9,7 @@ require("dotenv").config();
 const Judge0 = process.env.JUDGE_URI;
 
 class submission {
-  async create(req, user, score, max, result, time) {
+  async create(req, user, score, max, result, time, passed) {
     //console.log(result);
     const { language_id, code, question_id } = req.body;
     const check = await submission_db.findOne({
@@ -27,6 +27,7 @@ class submission {
             max_score: max,
             lastResults: result,
             runtime: time,
+            testcases_passed: passed
           },
         )
         .then(() => "Submission record has been updated")
@@ -42,6 +43,7 @@ class submission {
           max_score: max,
           lastResults: result,
           runtime: time,
+          testcases_passed: passed
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -83,11 +85,14 @@ class submission {
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
       await this.create_score(reg_no);
+      const max = await questiondb.findById(question_id,"testcases");
       if (!check.lastResults[0]) {
         res.status(201).json({
           error: check.lastResults,
           Sub_db: "No changes in source code",
           Score: check.score,
+          test_passed : check.testcases_passed,
+          no_of_test : max.length
         });
         return;
       }
@@ -206,6 +211,8 @@ class submission {
       //[complilation error/runtime,time limit exceeded, O/P failed]
       Sub_db: "",
       Score: "",
+      test_passed : "",
+      no_of_test : ""
     };
     while (!completion) {
       let runtime = 0;
@@ -327,12 +334,15 @@ class submission {
             Object.keys(grp).length,
             data_sent_back.error,
             runtime,
+            (tests.length - failed.length)
           );
           await this.create_score(reg_no);
         } else {
           data_sent_back.Sub_db = "No changes in Sub DB";
           await this.create_score(reg_no);
         }
+        data_sent_back.test_passed = (tests.length - failed.length);
+        data_sent_back.no_of_test = tests.length;
 
         //Creation of allPassesAt field when all testcases are passed
         if (
@@ -501,8 +511,9 @@ class submission {
   }
 
   async get_round(req, res) {
-    const { regno,round } = req.body;
-    console.log(regno,round);
+    const { regno,round } = req.params;
+    //console.log(req.params);
+    //console.log(regno,round);
     //console.log(regno);
     const question = await questiondb.find(
       {round : round},"_id name points"
