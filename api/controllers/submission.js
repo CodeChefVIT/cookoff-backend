@@ -204,7 +204,7 @@ class submission {
       "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout,time";
-    //console.log(url);
+    console.log(url);
     let completion = false;
     let data_sent_back = {
       error: [false, false, false, false], //false means it passed that grp
@@ -222,6 +222,7 @@ class submission {
       const result = await axios
         .get(url)
         .then((response) => response.data.submissions);
+      let error = "";
       for (let i in result) {
         const element = result[i];
         switch (element.status_id) {
@@ -236,6 +237,11 @@ class submission {
           case 4:
             //console.log(Buffer.from(element.expected_output,"base64").toString("utf-8"));
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
+            if (element.stdout == null){
+              data_sent_back.error[3] = true;
+              failed.push(i);
+              continue;
+            }
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
               Buffer.from(element.expected_output, "base64").toString(
@@ -253,6 +259,7 @@ class submission {
           case 5:
             failed.push(i);
             data_sent_back.error[2] = true;
+            error = element.compile_output;
             break;
           case 6:
             failed.push(i);
@@ -269,6 +276,7 @@ class submission {
           default:
             failed.push(i);
             data_sent_back.error[0] = true;
+            error = (error=="")?element.stderr:error;
             break;
         }
       }
@@ -293,7 +301,7 @@ class submission {
             ? Buffer.from(result[0].compile_output, "base64").toString(
               "utf-8",
             )
-            : Buffer.from(result[0].stderr, "base64").toString("utf-8");
+            : Buffer.from(error, "base64").toString("utf-8");
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
             error: data_sent_back.error,
