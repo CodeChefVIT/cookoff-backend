@@ -9,7 +9,7 @@ require("dotenv").config();
 const Judge0 = process.env.JUDGE_URI;
 
 class submission {
-  async create(req, user, score, max, result,time) {
+  async create(req, user, score, max, result, time) {
     //console.log(result);
     const { language_id, code, question_id } = req.body;
     const check = await submission_db.findOne({
@@ -26,8 +26,8 @@ class submission {
             score: score,
             max_score: max,
             lastResults: result,
-            runtime : time
-          }
+            runtime: time,
+          },
         )
         .then(() => "Submission record has been updated")
         .catch(() => "Error faced during updating the sub DB");
@@ -41,7 +41,7 @@ class submission {
           score: score,
           max_score: max,
           lastResults: result,
-          runtime : time
+          runtime: time,
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -78,7 +78,7 @@ class submission {
     }
     const check = await submission_db.findOne(
       { regNo: reg_no, question_id: question_id },
-      "code score lastResults allPassesAt"
+      "code score lastResults allPassesAt",
     );
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
@@ -146,7 +146,7 @@ class submission {
         language_id: language_id,
         stdin: Buffer.from(current.input, "binary").toString("base64"),
         expected_output: Buffer.from(current.expectedOutput, "binary").toString(
-          "base64"
+          "base64",
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
@@ -179,7 +179,7 @@ class submission {
           header: {
             "Content-Type": "application/JSON",
           },
-        }
+        },
       )
       .then((response) => response.data)
       .catch((err) => {
@@ -195,8 +195,7 @@ class submission {
     tokens.forEach((element) => {
       str.push(element.token);
     });
-    const url =
-      Judge0 +
+    const url = Judge0 +
       "/submissions/batch?tokens=" +
       str.toString() +
       "&base64_encoded=true&fields=status_id,stderr,compile_output,expected_output,stdout,time";
@@ -233,13 +232,13 @@ class submission {
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
                 Buffer.from(element.expected_output, "base64").toString(
-                  "utf-8"
+                  "utf-8",
                 ) ||
               Buffer.from(element.stdout, "base64").toString("utf-8") ==
                 Buffer.from(element.expected_output, "base64").toString("utf-8")
-            )
+            ) {
               runtime += parseFloat(element.time);
-            else {
+            } else {
               data_sent_back.error[3] = true;
               failed.push(i);
             }
@@ -270,8 +269,8 @@ class submission {
       if(tests.length == failed.length) runtime = 0;
       else runtime = runtime/(tests.length-failed.length);
       //console.log(tests.length,failed.length);
-      runtime = runtime/multipler;
-      //console.log("runtime = ", runtime); 
+      runtime = runtime / multipler;
+      //console.log("runtime = ", runtime);
       if (completion) {
         //Checking whether complilation error or runtime error
         if (failed.length != tests.length && data_sent_back.error[0]) {
@@ -281,12 +280,11 @@ class submission {
 
         //In case of complilation error the following code will run
         if (data_sent_back.error[0]) {
-          const msg =
-            result[0].compile_output != null
-              ? Buffer.from(result[0].compile_output, "base64").toString(
-                  "utf-8"
-                )
-              : Buffer.from(result[0].stderr, "base64").toString("utf-8");
+          const msg = result[0].compile_output != null
+            ? Buffer.from(result[0].compile_output, "base64").toString(
+              "utf-8",
+            )
+            : Buffer.from(result[0].stderr, "base64").toString("utf-8");
           data_sent_back.Sub_db = "Not saved in Sub DB(complilation error)";
           res.status(201).json({
             error: data_sent_back.error,
@@ -323,7 +321,7 @@ class submission {
             score,
             Object.keys(grp).length,
             data_sent_back.error,
-            runtime
+            runtime,
           );
           await this.create_score(reg_no);
         } else {
@@ -399,7 +397,7 @@ class submission {
     //console.log(regno);
     const record = await submission_db.find(
       { regNo: regno },
-      "code score question_id lastResults"
+      "code score question_id lastResults language_id",
     );
     //console.log(record);
     if (record.length == 0) {
@@ -423,6 +421,7 @@ class submission {
         runtime_error: runtime_error,
         time_limit_exceeded: time_limit_exceeded,
         output_did_not_match: output_no_match,
+        language_id: element.language_id,
       };
       msg.push(data);
     });
@@ -438,7 +437,7 @@ class submission {
           regNo: user,
           question_id: question_id,
         },
-        { allPassesAt: curr_time }
+        { allPassesAt: curr_time },
       )
       .then(() => "Updated all testcases timestamp")
       .catch(() => "Failed to update the timestamp");
@@ -462,27 +461,28 @@ class submission {
     }
   }
 
-  async round_lb(req,res){
-    const {round} = req.params;
-    const QID = await  questiondb.find({round : round},"_id");
+  async round_lb(req, res) {
+    const { round } = req.params;
+    const QID = await questiondb.find({ round: round }, "_id");
     let question = [];
     QID.forEach((ele) => question.push(ele._id.toString()));
-    const all_submit = await submission_db.find({question_id : {"$in" : question}}
-    ,"regNo score question_id runtime allPassesAt");
+    const all_submit = await submission_db.find({
+      question_id: { "$in": question },
+    }, "regNo score question_id runtime allPassesAt");
     let leaderboard = {};
     all_submit.forEach((ele) => {
       if (ele.regNo in leaderboard) {
         let data = leaderboard[ele.regNo];
         data[0] += ele.score;
-        data[1] = data[1]>ele.allPassesAt?ele.allPassesAt:data[1];
+        data[1] = data[1] > ele.allPassesAt ? ele.allPassesAt : data[1];
         data[2] += ele.runtime;
         //console.log(data);
         leaderboard[ele.regNo] = data;
       } else {
-        leaderboard[ele.regNo] = [ele.score,ele.allPassesAt,ele.runtime];
+        leaderboard[ele.regNo] = [ele.score, ele.allPassesAt, ele.runtime];
       }
     });
-    let items = Object.keys(leaderboard).map(function(key) {
+    let items = Object.keys(leaderboard).map(function (key) {
       return [key, leaderboard[key]];
     });
     items.sort(function(a,b){
