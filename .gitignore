@@ -7,3 +7,4 @@
 
 /node_modules
 .eslintrc.yml
+allowedEmails.json
