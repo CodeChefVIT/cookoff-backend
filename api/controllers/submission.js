@@ -276,6 +276,8 @@ class submission {
         if (failed.length != tests.length && data_sent_back.error[0]) {
           data_sent_back.error[0] = false;
           data_sent_back.error[1] = true;
+          data_sent_back.error[2] = true;
+          data_sent_back.error[3] = true;
         }
 
         //In case of complilation error the following code will run
@@ -294,6 +296,8 @@ class submission {
           return;
         }
 
+        if(data_sent_back.error[2]) data_sent_back.error[3] = true;
+
         //Calculate the score of the given code
         Object.keys(grp).forEach((element) => {
           let check = true;
@@ -308,6 +312,7 @@ class submission {
           }
         });
 
+        
         //comparing the score with the existing score and picking the best one
         data_sent_back.Score =
           !check || score >= check.score ? score : check.score;
@@ -493,6 +498,56 @@ class submission {
       if(a[1][1]<b[1][1]) return -1;
     });
     res.status(200).json(items);
+  }
+
+  async get_round(req, res) {
+    const { regno,round } = req.body;
+    console.log(regno,round);
+    //console.log(regno);
+    const question = await questiondb.find(
+      {round : round},"_id name points"
+    );
+    let ids = [];
+    question.forEach((ele) => ids.push(ele._id.toString()));
+    console.log(ids);
+    const record = await submission_db.find(
+      { regNo: regno , question_id : {"$in" : ids}},
+      "code score question_id lastResults language_id",
+    );
+    //console.log(record);
+    if (record.length == 0) {
+      res.status(400).json({
+        Error: "Invalid regNo",
+      });
+      return;
+    }
+    let msg = [];
+    let i = 0;
+    let number = 0;
+    record.forEach((element) => {
+      const curr = question[ids.indexOf(element.question_id.toString())];
+      const name = curr.name;
+      const points = curr.points;
+      const results = element.lastResults;
+      const compilation_error = results[0];
+      const runtime_error = results[1];
+      const time_limit_exceeded = results[2];
+      const output_no_match = results[3];
+      const data = {
+        question_id: element.question_id,
+        name : name,
+        points : points,
+        code: element.code,
+        score: element.score,
+        compilation_error: compilation_error,
+        runtime_error: runtime_error,
+        time_limit_exceeded: time_limit_exceeded,
+        output_did_not_match: output_no_match,
+        language_id: element.language_id,
+      };
+      msg.push(data);
+    });
+    res.status(200).json(msg);
   }
 }
 module.exports = submission;
