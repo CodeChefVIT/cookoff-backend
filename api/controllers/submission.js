@@ -9,7 +9,7 @@ require("dotenv").config();
 const Judge0 = process.env.JUDGE_URI;
 
 class submission {
-  async create(req, user, score, max, result, time) {
+  async create(req, user, score, max, result, time, passed) {
     //console.log(result);
     const { language_id, code, question_id } = req.body;
     const check = await submission_db.findOne({
@@ -27,6 +27,7 @@ class submission {
             max_score: max,
             lastResults: result,
             runtime: time,
+            testcases_passed: passed
           },
         )
         .then(() => "Submission record has been updated")
@@ -42,6 +43,7 @@ class submission {
           max_score: max,
           lastResults: result,
           runtime: time,
+          testcases_passed: passed
         })
         .then(() => "Submission record has been saved")
         .catch((err) => "Error faced during creating the entry");
@@ -83,11 +85,14 @@ class submission {
     //console.log(!check.allPassesAt);
     if (check && check.code == code) {
       await this.create_score(reg_no);
+      const max = await questiondb.findById(question_id,"testcases");
       if (!check.lastResults[0]) {
         res.status(201).json({
           error: check.lastResults,
           Sub_db: "No changes in source code",
           Score: check.score,
+          test_passed : check.testcases_passed,
+          no_of_test : max.length
         });
         return;
       }
@@ -150,8 +155,8 @@ class submission {
         ),
         cpu_time_limit:
           current.time * multipler < 15 ? current.time * multipler : 15,
-        memory: 
-          current.memory * multipler<2048 ? 2048 : current.memory*multipler
+        memory:
+          current.memory * multipler < 2048 ? 2048 : current.memory * multipler
         //redirect_stderr_to_stdout: true,
       });
       const group = current.group;
@@ -206,6 +211,8 @@ class submission {
       //[complilation error/runtime,time limit exceeded, O/P failed]
       Sub_db: "",
       Score: "",
+      test_passed : "",
+      no_of_test : ""
     };
     while (!completion) {
       let runtime = 0;
@@ -231,11 +238,11 @@ class submission {
             //console.log(Buffer.from(element.stdout,"base64").toString("utf-8"));
             if (
               Buffer.from(element.stdout, "base64").toString("utf-8") + "\n" ==
-                Buffer.from(element.expected_output, "base64").toString(
-                  "utf-8",
-                ) ||
+              Buffer.from(element.expected_output, "base64").toString(
+                "utf-8",
+              ) ||
               Buffer.from(element.stdout, "base64").toString("utf-8") ==
-                Buffer.from(element.expected_output, "base64").toString("utf-8")
+              Buffer.from(element.expected_output, "base64").toString("utf-8")
             ) {
               runtime += parseFloat(element.time);
             } else {
@@ -266,8 +273,8 @@ class submission {
         }
       }
       //console.log(runtime);
-      if(tests.length == failed.length) runtime = 0;
-      else runtime = runtime/(tests.length-failed.length);
+      if (tests.length == failed.length) runtime = 0;
+      else runtime = runtime / (tests.length - failed.length);
       //console.log(tests.length,failed.length);
       runtime = runtime / multipler;
       //console.log("runtime = ", runtime);
@@ -276,6 +283,8 @@ class submission {
         if (failed.length != tests.length && data_sent_back.error[0]) {
           data_sent_back.error[0] = false;
           data_sent_back.error[1] = true;
+          data_sent_back.error[2] = true;
+          data_sent_back.error[3] = true;
         }
 
         //In case of complilation error the following code will run
@@ -294,6 +303,8 @@ class submission {
           return;
         }
 
+        if(data_sent_back.error[2]) data_sent_back.error[3] = true;
+
         //Calculate the score of the given code
         Object.keys(grp).forEach((element) => {
           let check = true;
@@ -308,6 +319,7 @@ class submission {
           }
         });
 
+        
         //comparing the score with the existing score and picking the best one
         data_sent_back.Score =
           !check || score >= check.score ? score : check.score;
@@ -322,12 +334,15 @@ class submission {
             Object.keys(grp).length,
             data_sent_back.error,
             runtime,
+            (tests.length - failed.length)
           );
           await this.create_score(reg_no);
         } else {
           data_sent_back.Sub_db = "No changes in Sub DB";
           await this.create_score(reg_no);
         }
+        data_sent_back.test_passed = (tests.length - failed.length);
+        data_sent_back.no_of_test = tests.length;
 
         //Creation of allPassesAt field when all testcases are passed
         if (
@@ -367,7 +382,7 @@ class submission {
     ]);
     const score = ele[0].total;
     return User.updateOne({ regNo: user }, { score: score })
-      .catch(() => console.error("Error occured while saving scores \nRegno :"+regNo+"\tScore :"+score));
+      .catch(() => console.error("Error occured while saving scores \nRegno :" + regNo + "\tScore :" + score));
   }
 
   async get_reg_no(req, res) {
@@ -485,14 +500,65 @@ class submission {
     let items = Object.keys(leaderboard).map(function (key) {
       return [key, leaderboard[key]];
     });
-    items.sort(function(a,b){
+    items.sort(function (a, b) {
       //console.log(a[1][0]);
-      if(a[1][0]>b[1][0]) return -1;
-      if(a[1][0]<b[1][0]) return 1;
-      if(a[1][1]>b[1][1]) return 1;
-      if(a[1][1]<b[1][1]) return -1;
+      if (a[1][0] > b[1][0]) return -1;
+      if (a[1][0] < b[1][0]) return 1;
+      if (a[1][1] > b[1][1]) return 1;
+      if (a[1][1] < b[1][1]) return -1;
     });
     res.status(200).json(items);
+  }
+
+  async get_round(req, res) {
+    const { regno,round } = req.params;
+    //console.log(req.params);
+    //console.log(regno,round);
+    //console.log(regno);
+    const question = await questiondb.find(
+      {round : round},"_id name points"
+    );
+    let ids = [];
+    question.forEach((ele) => ids.push(ele._id.toString()));
+    console.log(ids);
+    const record = await submission_db.find(
+      { regNo: regno , question_id : {"$in" : ids}},
+      "code score question_id lastResults language_id",
+    );
+    //console.log(record);
+    if (record.length == 0) {
+      res.status(400).json({
+        Error: "Invalid regNo",
+      });
+      return;
+    }
+    let msg = [];
+    let i = 0;
+    let number = 0;
+    record.forEach((element) => {
+      const curr = question[ids.indexOf(element.question_id.toString())];
+      const name = curr.name;
+      const points = curr.points;
+      const results = element.lastResults;
+      const compilation_error = results[0];
+      const runtime_error = results[1];
+      const time_limit_exceeded = results[2];
+      const output_no_match = results[3];
+      const data = {
+        question_id: element.question_id,
+        name : name,
+        points : points,
+        code: element.code,
+        score: element.score,
+        compilation_error: compilation_error,
+        runtime_error: runtime_error,
+        time_limit_exceeded: time_limit_exceeded,
+        output_did_not_match: output_no_match,
+        language_id: element.language_id,
+      };
+      msg.push(data);
+    });
+    res.status(200).json(msg);
   }
 }
 module.exports = submission;
