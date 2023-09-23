@@ -34,7 +34,7 @@ router.get("/round_lb/:round", verifyAdminToken, (req, res)=> {
   submit.round_lb(req,res);
 });
 
-router.get("/codes_by_round", verifyAdminToken, (req,res) =>{
+router.get("/codes_by_round/:regno/:round", verifyAdminToken, (req,res) =>{
   submit.get_round(req,res);
 })
 
