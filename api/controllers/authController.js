@@ -3,6 +3,7 @@ const User = require("../models/User");
 const jwtController = require("../controllers/jwtController");
 const generator = require("generate-password");
 const { sendMail } = require("../utils/sendMail");
+const allowedEmailsData = require('../../allowedEmails.json');
 
 const authController = {
   login: async (req, res) => {
@@ -43,6 +44,10 @@ const authController = {
   create: async (req, res) => {
     try {
       const { name, regNo, email } = req.body;
+      const emailList = allowedEmailsData.allowedEmails;
+      if (!emailList.includes(email)) {
+        return res.status(400).json({ error:"User is not registered" });
+      }  
       const user_exists = await User.findOne({ $or: [{ regNo }, { email }] });
       if (user_exists) {
         return res.status(400).json({
@@ -50,7 +55,6 @@ const authController = {
             "User with the same registration number or email already exists",
         });
       }
-
       var password = generator.generate({
         length: 10,
         numbers: true,
