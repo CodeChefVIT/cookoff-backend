@@ -6,6 +6,7 @@ const {
   verifyAccessToken,
   verifyQuestion,
 } = require("../middleware/jwtMiddleware.js");
+const { verify } = require("jsonwebtoken");
 
 const submit = new submission();
 
@@ -29,8 +30,13 @@ router.get("/endtest", verifyAccessToken, (req, res) => {
   submit.endtest(req, res);
 });
 
-router.get("/round_lb/:round", verifyAdminToken, (req, res) => {
-  submit.round_lb(req, res);
+router.get("/round_lb/:round", verifyAdminToken, (req, res)=> {
+  submit.round_lb(req,res);
 });
+
+router.get("/codes_by_round", verifyAdminToken, (req,res) =>{
+  submit.get_round(req,res);
+})
+
 
 module.exports = router;
