@@ -44,10 +44,10 @@ const authController = {
   create: async (req, res) => {
     try {
       const { name, regNo, email } = req.body;
-      // const emailList = allowedEmailsData.allowedEmails;
-      // if (!emailList.includes(email)) {
-      //   return res.status(400).json({ error:"User is not registered" });
-      // }  
+      const emailList = allowedEmailsData.allowedEmails;
+      if (!emailList.includes(email)) {
+        return res.status(400).json({ error:"User is not registered" });
+      }  
       const user_exists = await User.findOne({ $or: [{ regNo }, { email }] });
       if (user_exists) {
         return res.status(400).json({
