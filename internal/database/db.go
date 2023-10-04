@@ -22,4 +22,6 @@ func ConnectDB(config *config.Config) {
 		log.Fatal("Could not connect to databse")
 		log.Printf("DSN = %s", dsn)
 	}
+
+	log.Println("Connection to database successful")
 }

@@ -21,7 +21,7 @@ make up            # Start Docker containers in the background
 ````
 
 ***
-Your API will be running on http://localhost:80
+Your API will be running on http://localhost/api/
 
-Test whether API is up at http://localhost/api/v1/healthcheck
+Test whether API is up at http://localhost/api/ping
 ***

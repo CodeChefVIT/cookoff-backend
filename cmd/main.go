@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	config "github.com/CodeChefVIT/cookoff-backend/config"
+	"github.com/CodeChefVIT/cookoff-backend/internal/database"
 )
 
 func main() {
@@ -18,8 +19,8 @@ func main() {
 		log.Fatalln("Failed to load environment variables! \n", err.Error())
 	}
 
-	//	database.ConnectDB(&config)
-	//database.RunMigrations(database.DB)
+	database.ConnectDB(&config)
+	database.RunMigrations(database.DB)
 
 	app.Use(logger.New())
 
@@ -29,15 +30,12 @@ func main() {
 		AllowMethods:     "GET, POST, PATCH, DELETE",
 		AllowCredentials: true,
 	}))
-
-	apiGroup := app.Group("/v1")
-
 	// routes.AuthRoutes(apiGroup)
 
-	apiGroup.Get("/healthcheck", func(c *fiber.Ctx) error {
+	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"status":  "success",
-			"message": "icETITE-24 Backend API is up and running.",
+			"message": "pong",
+			"status":  "Backend up and running",
 		})
 	})
 
