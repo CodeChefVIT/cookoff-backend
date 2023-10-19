@@ -1,22 +1,20 @@
-# Use an official Node.js runtime as the base image
-FROM --platform=linux/amd64 node:18
-# Set the working directory inside the container
-WORKDIR /usr/src/app
+FROM golang:alpine
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json ./
+RUN apk update && apk upgrade && \
+    apk add --no-cache git
 
-# Install app dependencies
-RUN npm install
+RUN mkdir /app
 
-# Copy the rest of the app's source code to the container
-COPY . .
+WORKDIR /app
 
-# Expose the port that the app will run on
+ADD go.mod .
+ADD go.sum .
+
+RUN go mod download
+ADD . .
+
+RUN go build -o ./bin/cookoff-backend ./cmd/main.go
+
 EXPOSE 8080
 
-# Install PM2 globally
-RUN npm install pm2 -g
-
-# Use PM2 as the command to run the app, with automatic restart on failure
-CMD ["pm2-runtime", "index.js"]
+CMD ["./bin/cookoff-backend"]
