@@ -1,10 +1,10 @@
 <p align="center"><a href="https://www.codechefvit.com" target="_blank"><img src="https://i.ibb.co/4J9LXxS/cclogo.png" width=160 title="CodeChef-VIT" alt="Codechef-VIT"></a>
 </p>
 
-<h2 align="center"> Project Title </h2>
+<h2 align="center"> Cookoff23 Backend </h2>
 <br/>
 
-> Include project description here.
+> This is the backend for the cookoff coding portal for the 8th edition of cookoff
 
 ---
 
